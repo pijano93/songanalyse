@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SongAnalyse">
-    <link rel="apple-touch-icon" href="icon.png">
+    <link class="apple-touch-icon" href="icon.png">
 
     <style>
         :root {
@@ -21,6 +21,8 @@
             --btn-red: #dc3545;
             --btn-red-hover: #b02a37;
             --btn-green: #28a745;
+            --btn-purple: #6f42c1;
+            --btn-purple-hover: #59309c;
         }
 
         * {
@@ -87,6 +89,22 @@
             background: var(--btn-green);
         }
 
+        .btn-tapper {
+            background: var(--btn-purple);
+        }
+        .btn-tapper:hover {
+            background: var(--btn-purple-hover);
+        }
+
+        .bpm-display {
+            font-weight: bold;
+            font-size: 14px;
+            background: #eee;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
         .clock {
             font-size: 28px;
             font-weight: bold;
@@ -118,12 +136,33 @@
         #timeline-container {
             position: relative;
             width: 100%;
-            height: 60px;
+            height: 60px; /* Zurück auf die alte klassische Höhe */
             background: #e9ecef;
             border: 1px solid #adb5bd;
             border-radius: 4px;
             cursor: pointer;
             overflow: visible;
+        }
+
+        /* SEPARATE WELLENFORM DIREKT DARUNTER */
+        #waveform-container {
+            position: relative;
+            width: 100%;
+            height: 80px; /* Eigene feste Höhe für das Audiosignal */
+            background: #f1f3f5;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        #waveform-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
 
         .segment {
@@ -155,24 +194,74 @@
             text-overflow: ellipsis;
             text-align: center;
             pointer-events: none;
+            font-size: 14px;
         }
 
         .segment-duration {
             position: absolute;
-            bottom: -28px;
+            bottom: 2px;
             width: 100%;
             text-align: center;
-            color: #555;
-            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 10px;
             font-family: monospace;
             font-weight: bold;
-            text-shadow: none;
+            pointer-events: none;
         }
 
+        /* SYNC TABELLE UNTERHALB */
+        #table-timeline-container {
+            display: flex;
+            width: 100%;
+            margin-top: 35px;
+            border: 1px solid #adb5bd;
+            border-radius: 4px;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .table-segment-cell {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #adb5bd;
+            min-width: 0;
+        }
+        .table-segment-cell:last-child {
+            border-right: none;
+        }
+
+        .table-segment-header {
+            padding: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            background: #e9ecef;
+            border-bottom: 1px solid #adb5bd;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-segment-cell textarea {
+            width: 100%;
+            height: 70px;
+            border: none;
+            padding: 8px;
+            font-size: 13px;
+            resize: none;
+            background: transparent;
+            font-family: inherit;
+        }
+        .table-segment-cell textarea:focus {
+            outline: 2px solid var(--btn-blue);
+            background: #fff;
+        }
+
+        /* Roter Marker läuft durch beide Leisten durch */
         .playhead {
             position: absolute;
             top: -10px;
-            bottom: -35px;
+            bottom: -95px; /* Verlängert, damit er auch über die separate Waveform reicht */
             width: 4px;
             background: #dc3545;
             z-index: 30;
@@ -287,9 +376,6 @@
             padding: 0 !important;
             cursor: default !important;
         }
-        .menu-divider:hover {
-            background: #eee !important;
-        }
 
         /* Farben */
         .color-intro { background: #4682B4; }    
@@ -310,7 +396,7 @@
 </head>
 <body>
 
-    <div id="save-data" style="display:none;" data-audio="" data-markers='[{"time":0,"type":"Intro"}]'></div>
+    <div id="save-data" style="display:none;" data-audio="" data-markers='[{"time":0,"type":"Intro","notes":""}]'></div>
 
     <div class="header">
         <div class="toolbar">
@@ -326,8 +412,14 @@
             <div style="width: 2px; height: 30px; background: #ccc; margin: 0 10px;"></div>
             
             <button onclick="splitSection()" title="Tastenkürzel: C">✂️ Teilen (C)</button>
-            <button id="merge-btn" onclick="toggleMergeMode()">🔗 Zusammenfügen</button>
-            <span class="merge-mode-active-text" id="merge-text">Zusammenfügen active! Klicke auf Trennlinie.</span>
+            <button id="merge-btn" onclick="toggleMergeMode()" title="Tastenkürzel: Z">🔗 Zusammenfügen (Z)</button>
+            <span class="merge-mode-active-text" id="merge-text">Zusammenfügen aktiv!</span>
+
+            <div style="width: 2px; height: 30px; background: #ccc; margin: 0 10px;"></div>
+            
+            <button class="btn-tapper" onclick="tapTempo(event)" title="Tastenkürzel: T">🥁 Tempo Tappen (T)</button>
+            <div class="bpm-display" id="bpm-val">-- BPM</div>
+            <button style="padding: 8px 10px; background:#6c757d;" onclick="resetTapper()" title="BPM zurücksetzen">🔄</button>
             
             <div style="width: 2px; height: 30px; background: #ccc; margin: 0 10px;"></div>
             <button onclick="undo()" title="Tastenkürzel: STRG+Z">↩️ Zurück</button>
@@ -335,6 +427,7 @@
         </div>
         
         <div class="player-controls">
+            <button id="loop-btn" onclick="toggleLoop()" style="background: #e67e22;">🔁 Loop: AUS</button>
             <button id="play-pause-btn" onclick="togglePlay()" style="border-radius: 50%; width: 50px; height: 50px; justify-content: center; font-size: 20px;">▶</button>
             <div class="clock" id="live-clock">00:00</div>
         </div>
@@ -344,6 +437,12 @@
         <div id="timeline-container">
             <div class="playhead" id="playhead"></div>
         </div>
+        
+        <div id="waveform-container">
+            <canvas id="waveform-canvas"></canvas>
+        </div>
+        
+        <div id="table-timeline-container"></div>
     </div>
 
     <audio id="audio-player"></audio>
@@ -365,23 +464,31 @@
     <script>
         const audio = document.getElementById('audio-player');
         const container = document.getElementById('timeline-container');
+        const waveContainer = document.getElementById('waveform-container');
+        const tableContainer = document.getElementById('table-timeline-container');
         const playhead = document.getElementById('playhead');
         const clock = document.getElementById('live-clock');
         const contextMenu = document.getElementById('context-menu');
         const mergeBtn = document.getElementById('merge-btn');
         const mergeText = document.getElementById('merge-text');
         const playBtn = document.getElementById('play-pause-btn');
+        const loopBtn = document.getElementById('loop-btn');
+        const canvas = document.getElementById('waveform-canvas');
+        const ctx = canvas.getContext('2d');
 
-        let markers = [{"time": 0, "type": "Intro"}];
+        let markers = [{"time": 0, "type": "Intro", "notes": ""}];
         let historyStack = [];
         let historyIndex = -1;
         let isMergeMode = false;
+        let isLoopActive = false;
         
         let isDragging = false;
         let isDraggingPlayhead = false;
         let dragMarkerIndex = -1;
         let activeSegmentIndex = -1;
         let dragHandleElement = null;
+
+        let tapTimes = [];
 
         const colors = {
             'Intro': '#4682B4', 'Verse': '#E1C03F', 'Prechorus': '#F0943A',
@@ -403,6 +510,7 @@
 
             if (markerData) {
                 markers = JSON.parse(markerData);
+                markers.forEach(m => { if(m.notes === undefined) m.notes = ""; });
             }
             saveState(true);
 
@@ -413,7 +521,15 @@
             
             playhead.addEventListener('mousedown', (e) => startPlayheadDrag(e, false));
             playhead.addEventListener('touchstart', (e) => startPlayheadDrag(e, true), {passive: false});
+            
+            resizeCanvas();
+            window.addEventListener('resize', () => { resizeCanvas(); drawWaveform(); });
         };
+
+        function resizeCanvas() {
+            canvas.width = waveContainer.clientWidth;
+            canvas.height = waveContainer.clientHeight;
+        }
 
         document.getElementById('audio-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -424,7 +540,7 @@
             reader.onload = function(evt) {
                 const b64 = evt.target.result;
                 document.getElementById('save-data').setAttribute('data-audio', b64);
-                markers = [{"time": 0, "type": "Intro"}];
+                markers = [{"time": 0, "type": "Intro", "notes": ""}];
                 historyStack = [];
                 historyIndex = -1;
                 saveState(true);
@@ -437,9 +553,106 @@
             audio.src = src;
             audio.load();
             audio.onloadedmetadata = () => {
+                generateWaveform();
                 drawTimeline();
                 updateClock();
             };
+        }
+
+        function generateWaveform() {
+            if (!window.AudioContext && !window.webkitAudioContext) {
+                drawDefaultWaveform();
+                return;
+            }
+            const b64Data = document.getElementById('save-data').getAttribute('data-audio');
+            if (!b64Data) return;
+
+            fetch(b64Data)
+            .then(res => res.arrayBuffer())
+            .then(buffer => {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                return audioCtx.decodeAudioData(buffer);
+            })
+            .then(audioBuffer => {
+                const rawData = audioBuffer.getChannelData(0);
+                const samples = 400;
+                const blockSize = Math.floor(rawData.length / samples);
+                const filteredData = [];
+                
+                for (let i = 0; i < samples; i++) {
+                    let blockStart = blockSize * i;
+                    let sum = 0;
+                    for (let j = 0; j < blockSize; j++) {
+                        sum = sum + Math.abs(rawData[blockStart + j]);
+                    }
+                    filteredData.push(sum / blockSize);
+                }
+                
+                const multiplier = Math.max(...filteredData);
+                window.normalizedWaveformData = filteredData.map(n => n / multiplier);
+                drawWaveform();
+            })
+            .catch(err => {
+                console.error("Waveform-Fehler:", err);
+                drawDefaultWaveform();
+            });
+        }
+
+        function drawWaveform() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!window.normalizedWaveformData) {
+                drawDefaultWaveform();
+                return;
+            }
+
+            const data = window.normalizedWaveformData;
+            const width = canvas.width;
+            const height = canvas.height;
+            const barWidth = width / data.length;
+
+            ctx.fillStyle = '#007bff'; // Schönes Blau für das Audiosignal
+            for (let i = 0; i < data.length; i++) {
+                const barHeight = data[i] * height * 0.85;
+                const x = i * barWidth;
+                const y = (height - barHeight) / 2;
+                ctx.fillRect(x, y, barWidth - 1, barHeight);
+            }
+        }
+
+        function drawDefaultWaveform() {
+            ctx.fillStyle = '#adb5bd';
+            ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
+        }
+
+        function toggleLoop() {
+            isLoopActive = !isLoopActive;
+            if (isLoopActive) {
+                loopBtn.innerText = "🔁 Loop: AN";
+                loopBtn.style.background = "#28a745";
+            } else {
+                loopBtn.innerText = "🔁 Loop: AUS";
+                loopBtn.style.background = "#e67e22";
+            }
+        }
+
+        function checkLoopBounds() {
+            if (!isLoopActive || !audio.duration || isDraggingPlayhead) return;
+            
+            const currTime = audio.currentTime;
+            let currentSegmentIdx = 0;
+            for (let i = markers.length - 1; i >= 0; i--) {
+                if (currTime >= markers[i].time) {
+                    currentSegmentIdx = i;
+                    break;
+                }
+            }
+
+            const start = markers[currentSegmentIdx].time;
+            const end = (currentSegmentIdx < markers.length - 1) ? markers[currentSegmentIdx + 1].time : duration = audio.duration;
+
+            if (currTime >= end - 0.1) {
+                audio.currentTime = start;
+            }
         }
 
         function togglePlay() {
@@ -462,6 +675,7 @@
         }
 
         audio.addEventListener('timeupdate', () => {
+            checkLoopBounds();
             if (!isDragging && !isDraggingPlayhead) {
                 updateClock();
                 updatePlayhead();
@@ -489,29 +703,40 @@
             playhead.style.left = pct + '%';
         }
 
+        // Hilfsfunktion: Bestimmt Abspielzeitpunkt anhand einer X-Koordinate
+        function getTimelineTimeFromX(clientX) {
+            const rect = container.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const pct = Math.max(0, Math.min(1, x / rect.width));
+            return pct * audio.duration;
+        }
+
+        // Klicken in freien Bereich (Balken-Container) springt frei an die Stelle
         container.addEventListener('mousedown', function(e) {
             if (!audio.duration) return;
             if (e.target.classList.contains('handle') || e.target.classList.contains('playhead') || e.target.classList.contains('segment') || e.button !== 0) return;
-            
-            const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const pct = Math.max(0, Math.min(1, x / rect.width));
-            audio.currentTime = pct * audio.duration;
-            updatePlayhead();
-            updateClock();
+            audio.currentTime = getTimelineTimeFromX(e.clientX);
+            updatePlayhead(); updateClock();
         });
 
         container.addEventListener('touchstart', function(e) {
             if (!audio.duration) return;
             if (e.target.classList.contains('handle') || e.target.classList.contains('playhead') || e.target.classList.contains('segment')) return;
-            
-            const touch = e.touches[0];
-            const rect = container.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const pct = Math.max(0, Math.min(1, x / rect.width));
-            audio.currentTime = pct * audio.duration;
-            updatePlayhead();
-            updateClock();
+            audio.currentTime = getTimelineTimeFromX(e.touches[0].clientX);
+            updatePlayhead(); updateClock();
+        }, {passive: true});
+
+        // Klicken auf die getrennte Wellenform (Waveform-Container) erlaubt ebenfalls freies Springen
+        waveContainer.addEventListener('mousedown', function(e) {
+            if (!audio.duration || e.button !== 0) return;
+            audio.currentTime = getTimelineTimeFromX(e.clientX);
+            updatePlayhead(); updateClock();
+        });
+
+        waveContainer.addEventListener('touchstart', function(e) {
+            if (!audio.duration) return;
+            audio.currentTime = getTimelineTimeFromX(e.touches[0].clientX);
+            updatePlayhead(); updateClock();
         }, {passive: true});
 
         function splitSection() {
@@ -528,7 +753,7 @@
                 }
             }
 
-            markers.push({"time": t, "type": segmentType});
+            markers.push({"time": t, "type": segmentType, "notes": ""});
             markers.sort((a, b) => a.time - b.time);
             saveState();
             drawTimeline();
@@ -549,6 +774,8 @@
 
         function drawTimeline() {
             document.querySelectorAll('.segment').forEach(el => el.remove());
+            tableContainer.innerHTML = '';
+
             if (!audio.duration) return;
             const duration = audio.duration;
 
@@ -580,22 +807,19 @@
                 if (i < markers.length - 1) {
                     const handle = document.createElement('div');
                     handle.className = 'handle';
-                    
                     handle.addEventListener('mousedown', (e) => startDrag(e, i + 1, false));
                     handle.addEventListener('touchstart', (e) => startDrag(e, i + 1, true), {passive: false});
-                    
                     seg.appendChild(handle);
                 }
 
-                // Klick auf ein Formteil springt an dessen BEGINN
+                // WUNSCH-KORREKTUR: Einfacher Linksklick springt ab JETZT frei dorthin, wo man hinklickt
                 seg.addEventListener('click', (e) => {
-                    if (isMergeMode) return;
-                    audio.currentTime = start;
+                    if (isMergeMode || e.target.classList.contains('handle')) return;
+                    audio.currentTime = getTimelineTimeFromX(e.clientX);
                     updatePlayhead();
                     updateClock();
                 });
 
-                // Fingertipp auf ein Formteil springt an dessen BEGINN
                 let touchStartTime = 0;
                 seg.addEventListener('touchstart', (e) => {
                     touchStartTime = new Date().getTime();
@@ -604,14 +828,11 @@
                 seg.addEventListener('touchend', (e) => {
                     const touchEndTime = new Date().getTime();
                     if ((touchEndTime - touchStartTime) < 200) {
-                        setTimeout(() => {
-                            if (contextMenu.style.display !== 'block') {
-                                if (isMergeMode || isDragging) return;
-                                audio.currentTime = start;
-                                updatePlayhead();
-                                updateClock();
-                            }
-                        }, 250);
+                        if (isMergeMode || isDragging || e.target.classList.contains('handle')) return;
+                        // Kurzer Tipp triggert freies Springen auf dem iPad
+                        audio.currentTime = getTimelineTimeFromX(e.changedTouches[0].clientX);
+                        updatePlayhead();
+                        updateClock();
                     }
                 });
 
@@ -624,18 +845,20 @@
                     contextMenu.style.top = e.pageY + 'px';
                 });
 
-                // PC Doppelklick
+                // Doppelklick (PC) setzt Player exakt an den BEGINN des Formteils
                 seg.addEventListener('dblclick', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     pauseAudioOnly();
+                    audio.currentTime = start;
+                    updatePlayhead(); updateClock();
                     activeSegmentIndex = i;
                     contextMenu.style.display = 'block';
                     contextMenu.style.left = e.pageX + 'px';
                     contextMenu.style.top = e.pageY + 'px';
                 });
 
-                // Touch-Doppeltipp für iPadOS
+                // Doppeltipp (iPad) setzt Player exakt an den BEGINN des Formteils
                 let lastTap = 0;
                 seg.addEventListener('touchend', (e) => {
                     const currentTime = new Date().getTime();
@@ -644,6 +867,8 @@
                         e.preventDefault();
                         e.stopPropagation();
                         pauseAudioOnly();
+                        audio.currentTime = start;
+                        updatePlayhead(); updateClock();
                         activeSegmentIndex = i;
                         const touch = e.changedTouches[0];
                         contextMenu.style.display = 'block';
@@ -654,9 +879,60 @@
                 });
 
                 container.appendChild(seg);
+
+                // UNTERE SPALTE FÜR ANMERKUNGEN
+                const cell = document.createElement('div');
+                cell.className = 'table-segment-cell';
+                cell.style.width = widthPct + '%';
+
+                const cellHeader = document.createElement('div');
+                cellHeader.className = 'table-segment-header';
+                cellHeader.innerText = markers[i].type;
+                cellHeader.style.borderTop = `3px solid ${colors[markers[i].type] || defaultCustomColor}`;
+
+                const textarea = document.createElement('textarea');
+                textarea.placeholder = "Anmerkungen...";
+                textarea.value = markers[i].notes || "";
+                
+                textarea.addEventListener('input', (e) => {
+                    markers[i].notes = e.target.value;
+                    document.getElementById('save-data').setAttribute('data-markers', JSON.stringify(markers));
+                });
+
+                cell.appendChild(cellHeader);
+                cell.appendChild(textarea);
+                tableContainer.appendChild(cell);
             }
         }
 
+        // --- TEMPO TAPPER ---
+        function tapTempo(e) {
+            if(e) e.preventDefault();
+            const now = new Date().getTime();
+            if (tapTimes.length > 0 && (now - tapTimes[tapTimes.length - 1]) > 2000) {
+                tapTimes = [];
+            }
+            tapTimes.push(now);
+
+            if (tapTimes.length > 1) {
+                let intervals = [];
+                for (let i = 1; i < tapTimes.length; i++) {
+                    intervals.push(tapTimes[i] - tapTimes[i - 1]);
+                }
+                const avgInterval = intervals.reduce((sum, val) => sum + val, 0) / intervals.length;
+                const bpm = Math.round(60000 / avgInterval);
+                document.getElementById('bpm-val').innerText = bpm + " BPM";
+            } else {
+                document.getElementById('bpm-val').innerText = "Tappen...";
+            }
+        }
+
+        function resetTapper() {
+            tapTimes = [];
+            document.getElementById('bpm-val').innerText = "-- BPM";
+        }
+
+        // --- GRENZEN VERSCHIEBEN ---
         function startDrag(e, index, isTouch) {
             e.stopPropagation();
             if (isMergeMode) {
@@ -680,16 +956,6 @@
             }
         }
 
-        function calculateNewTime(clientX) {
-            const rect = container.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const pct = Math.max(0, Math.min(1, x / rect.width));
-            let newTime = pct * audio.duration;
-            const prevTime = markers[dragMarkerIndex - 1].time;
-            const nextTime = dragMarkerIndex < markers.length - 1 ? markers[dragMarkerIndex + 1].time : audio.duration;
-            return Math.max(prevTime + 0.1, Math.min(nextTime - 0.1, newTime));
-        }
-
         function processMouseDrag(e) {
             if (!isDragging) return;
             moveHandleVisual(calculateNewTime(e.clientX));
@@ -706,14 +972,19 @@
             const duration = audio.duration;
             const start = markers[dragMarkerIndex - 1].time;
             const widthPct = ((newTime - start) / duration) * 100;
+            
             dragHandleElement.style.width = widthPct + '%';
             
+            const cells = tableContainer.children;
+            if(cells[dragMarkerIndex - 1]) cells[dragMarkerIndex - 1].style.width = widthPct + '%';
+
             const nextSeg = dragHandleElement.nextSibling;
             if (nextSeg && nextSeg.classList.contains('segment')) {
                 const nextEnd = (dragMarkerIndex < markers.length - 1) ? markers[dragMarkerIndex + 1].time : duration;
                 const nextWidthPct = ((nextEnd - newTime) / duration) * 100;
                 nextSeg.style.left = ((newTime / duration) * 100) + '%';
                 nextSeg.style.width = nextWidthPct + '%';
+                if(cells[dragMarkerIndex]) cells[dragMarkerIndex].style.width = nextWidthPct + '%';
             }
         }
 
@@ -728,6 +999,7 @@
             drawTimeline();
         }
 
+        // --- ROTER ZEITMARKER (PLAYHEAD) BEWEGUNG ---
         function startPlayheadDrag(e, isTouch) {
             e.stopPropagation();
             if (!audio.duration) return;
@@ -743,16 +1015,9 @@
             }
         }
 
-        function getPlayheadTimeFromX(clientX) {
-            const rect = container.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const pct = Math.max(0, Math.min(1, x / rect.width));
-            return pct * audio.duration;
-        }
-
         function processPlayheadMouseDrag(e) {
             if (!isDraggingPlayhead) return;
-            const targetTime = getPlayheadTimeFromX(e.clientX);
+            const targetTime = getTimelineTimeFromX(e.clientX);
             playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
             clock.innerText = formatTime(targetTime);
         }
@@ -760,7 +1025,7 @@
         function processPlayheadTouchDrag(e) {
             if (!isDraggingPlayhead) return;
             e.preventDefault();
-            const targetTime = getPlayheadTimeFromX(e.touches[0].clientX);
+            const targetTime = getTimelineTimeFromX(e.touches[0].clientX);
             playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
             clock.innerText = formatTime(targetTime);
         }
@@ -777,7 +1042,7 @@
             if (e.changedTouches && e.changedTouches.length > 0) {
                 finalX = e.changedTouches[0].clientX;
             }
-            const targetTime = getPlayheadTimeFromX(finalX);
+            const targetTime = getTimelineTimeFromX(finalX);
             audio.currentTime = targetTime;
             updatePlayhead();
             updateClock();
@@ -837,9 +1102,21 @@
             }
         }
 
+        // --- TASTATURSHORTCUTS MIT TEXTAREA-SCHUTZ ---
         document.addEventListener('keydown', (e) => {
+            // WUNSCH-KORREKTUR: Deaktiviert alle Shortcuts automatisch, wenn Schüler in ein Eingabefeld (Textarea) schreiben
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
             if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
                 splitSection();
+            } else if (e.key.toLowerCase() === 'z' && !e.ctrlKey) {
+                // WUNSCH-KORREKTUR: "Z" ohne Strg schaltet Zusammenfügen-Modus um
+                e.preventDefault();
+                toggleMergeMode();
+            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
+                // WUNSCH-KORREKTUR: "T" löst das Tempo Tappen aus
+                e.preventDefault();
+                tapTempo();
             } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
                 e.preventDefault();
                 undo();
@@ -847,7 +1124,7 @@
                 e.preventDefault();
                 redo();
             } else if (e.code === 'Space') {
-                if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+                if(e.target.tagName !== 'BUTTON') {
                     e.preventDefault();
                     togglePlay();
                 }
