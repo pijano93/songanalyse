@@ -34,7 +34,6 @@
             padding: 20px;
         }
 
-        /* Haupt-Header: Erzwingt, dass alle 3 Boxen exakt gleich hoch sind */
         .header {
             display: flex;
             justify-content: space-between;
@@ -43,7 +42,6 @@
             gap: 15px;
         }
 
-        /* BEREICH 1: Hauptmenü mit flexiblem Spalten-Layout */
         .toolbar {
             display: flex;
             background: #fff;
@@ -53,7 +51,6 @@
             flex-grow: 1;
         }
 
-        /* Das präzise Grid für die Buttons übereinander */
         .button-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(140px, 1fr));
@@ -62,13 +59,6 @@
             width: 100%;
         }
 
-        /* Trennstrich-Ersatz durch Spaltenabstand */
-        .button-grid > *:nth-child(2),
-        .button-grid > *:nth-child(5) {
-            margin-right: 5px;
-        }
-
-        /* Einheitliche Button-Basis */
         button, .upload-btn {
             width: 100%;
             height: 100%;
@@ -96,7 +86,6 @@
             background: var(--btn-blue-hover);
         }
 
-        /* Aktiv-Zustand für Verbindung und Loop (Rot) */
         button.active {
             background: var(--btn-red) !important;
         }
@@ -104,7 +93,6 @@
             background: var(--btn-red-hover) !important;
         }
 
-        /* BEREICH 2 & BEREICH 3: Standalone Panels mit gleicher Box-Ästhetik */
         .tempo-panel, .player-panel {
             display: flex;
             gap: 12px;
@@ -113,6 +101,12 @@
             padding: 15px 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* WUNSCH: Loop-Button mit absolut starrer, fester Breite */
+        #loop-btn {
+            min-width: 130px;
+            max-width: 130px;
         }
 
         .bpm-display {
@@ -239,6 +233,7 @@
             border-radius: 4px;
             background: #f8f9fa;
             overflow: hidden;
+            align-items: stretch;
         }
 
         .table-segment-cell {
@@ -246,6 +241,7 @@
             flex-direction: column;
             border-right: 1px solid #adb5bd;
             min-width: 0;
+            background: #fff;
         }
         .table-segment-cell:last-child {
             border-right: none;
@@ -274,15 +270,18 @@
             font-family: monospace;
         }
 
+        /* WUNSCH: Textbereich wächst automatisch; absolut keine Zieh- und Scrollbalken */
         .table-segment-cell textarea {
             width: 100%;
-            height: 70px;
+            min-height: 70px;
             border: none;
             padding: 8px;
             font-size: 13px;
-            resize: none;
+            overflow-y: hidden; /* Entfernt die Scrollleiste komplett */
+            resize: none;      /* Entfernt den Zieh-Griff unten rechts */
             background: transparent;
             font-family: inherit;
+            display: block;
         }
         .table-segment-cell textarea:focus {
             outline: 2px solid var(--btn-blue);
@@ -439,7 +438,7 @@
         </div>
         
         <div class="tempo-panel">
-            <button class="btn-tapper" onclick="tapTempo(event)" title="Tastenkürzel: T">🥁 Tempo-Tap (T)</button>
+            <button class="btn-tapper" onclick="tapTempo(event)" title="Tastenkürzel: T">🥁 Tap (T)</button>
             <div class="bpm-display" id="bpm-val">-- BPM</div>
             <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen">🔄</button>
         </div>
@@ -636,19 +635,14 @@
             }
         }
 
-        function drawDefaultWaveform() {
-            ctx.fillStyle = '#adb5bd';
-            ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
-        }
-
         function toggleLoop() {
             isLoopActive = !isLoopActive;
             if (isLoopActive) {
                 loopBtn.innerText = "🔁 Loop: AN";
-                loopBtn.classList.add('active'); // Färbt den Button rot
+                loopBtn.classList.add('active');
             } else {
                 loopBtn.innerText = "🔁 Loop: AUS";
-                loopBtn.classList.remove('active'); // Färbt den Button zurück auf blau
+                loopBtn.classList.remove('active');
             }
         }
 
@@ -776,12 +770,18 @@
         function toggleMergeMode() {
             isMergeMode = !isMergeMode;
             if (isMergeMode) {
-                mergeBtn.classList.add('active'); // Färbt Verbinden rot
+                mergeBtn.classList.add('active');
                 container.classList.add('merge-mode');
             } else {
                 mergeBtn.classList.remove('active');
                 container.classList.remove('merge-mode');
             }
+        }
+
+        // --- HILFSFUNKTION: Automatische Höhenanpassung für die Textfelder ---
+        function autoGrowTextarea(el) {
+            el.style.height = "auto";
+            el.style.height = el.scrollHeight + "px";
         }
 
         // --- DRAW TIMELINE & TABLE ---
@@ -799,7 +799,7 @@
                 const startPct = (start / duration) * 100;
                 const widthPct = ((end - start) / duration) * 100;
 
-                // OBERE BALKEN
+                // BALKEN
                 const seg = document.createElement('div');
                 seg.className = 'segment';
                 seg.style.left = startPct + '%';
@@ -884,7 +884,7 @@
 
                 container.appendChild(seg);
 
-                // UNTERE TABELLE
+                // TABELLE
                 const cell = document.createElement('div');
                 cell.className = 'table-segment-cell';
                 cell.style.width = widthPct + '%';
@@ -908,14 +908,19 @@
                 textarea.placeholder = "Anmerkungen...";
                 textarea.value = markers[i].notes || "";
                 
+                // Live-Wachstums-Event und Datensicherung gekoppelt
                 textarea.addEventListener('input', (e) => {
                     markers[i].notes = e.target.value;
                     document.getElementById('save-data').setAttribute('data-markers', JSON.stringify(markers));
+                    autoGrowTextarea(e.target);
                 });
 
                 cell.appendChild(cellHeader);
                 cell.appendChild(textarea);
                 tableContainer.appendChild(cell);
+
+                // Initiale Höhenberechnung direkt nach dem Laden
+                setTimeout(() => { autoGrowTextarea(textarea); }, 10);
             }
         }
 
@@ -1117,14 +1122,13 @@
             historyIndex++;
         }
 
+        // SHORTCUTS (Mit Textarea-Schutz für alle Tasten)
         document.addEventListener('keydown', (e) => {
-            // WUNSCH-KORREKTUR: Alle Shortcuts sind ausnahmslos gesperrt, sobald ein Textelement aktiv ist
             if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
 
             if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
                 splitSection();
             } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
-                // WUNSCH-KORREKTUR: "V" aktiviert den Verbinden-Modus
                 e.preventDefault();
                 toggleMergeMode();
             } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
