@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Struktur Analyse</title>
     
-    <!-- PWA Meta Tags für iOS & Android -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -35,7 +34,7 @@
             padding: 20px;
         }
 
-        /* Haupt-Header: Hält alle Blöcke auf exakt 146px Höhe */
+        /* Haupt-Header */
         .header {
             display: flex;
             justify-content: flex-start;
@@ -79,14 +78,14 @@
             height: 146px; 
         }
 
-        /* Spaltenbreite */
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(3, 155px);
+            grid-template-columns: repeat(3, 150px);
             grid-template-rows: repeat(2, 50px);
             gap: 10px;
         }
 
+        /* WUNSCH: Buttons und Labels jetzt strikt linksbündig ausgerichtet */
         button, .upload-btn {
             -webkit-appearance: none;
             appearance: none;
@@ -102,8 +101,8 @@
             transition: background 0.2s, color 0.2s;
             display: flex;
             align-items: center;
-            justify-content: flex-start; 
-            gap: 10px; 
+            justify-content: flex-start; /* ÄNDERUNG: Linksbündig */
+            gap: 10px; /* Abstand zwischen Icon und Text */
             font-size: 14px;
             margin: 0;
             white-space: nowrap;
@@ -124,20 +123,11 @@
             background: var(--btn-red-hover) !important;
         }
 
+        /* WUNSCH: Emojis/Icons innerhalb der Buttons deutlich vergrößern */
         .btn-icon {
-            font-size: 20px; 
+            font-size: 20px; /* Größeres Icon */
             display: inline-block;
             line-height: 1;
-        }
-
-        .btn-text-symbol {
-            font-size: 22px;
-            font-weight: bold;
-            color: white;
-            display: inline-block;
-            line-height: 1;
-            width: 20px;
-            text-align: center;
         }
 
         /* BEREICH 2 & 3: Rechtes Kombi-Panel */
@@ -151,7 +141,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-grow: 0; 
-            width: 370px; 
+            width: 355px; 
             height: 146px; 
         }
 
@@ -164,7 +154,7 @@
         }
 
         .btn-panel-sync {
-            width: 155px !important;
+            width: 150px !important;
             flex-shrink: 0;
         }
 
@@ -198,6 +188,7 @@
             background: #e2e2e2 !important;
         }
 
+        /* KORREKTUR: Runde Play-Taste erzwingt nun ein reines span-basiertes Dreieck ohne grauen iOS-Kasten */
         .btn-play-round {
             -webkit-appearance: none;
             appearance: none;
@@ -213,10 +204,11 @@
         }
 
         .btn-play-round .btn-icon {
-            font-size: 24px; 
+            font-size: 24px; /* Dreieck noch ein Stück vergrößert */
             color: white;
         }
 
+        /* Minimaler optischer Ausgleich nach rechts fürs Dreieck, damit es im Kreis perfekt zentriert wirkt */
         .btn-play-round:not(.active) .btn-icon {
             padding-left: 3px;
         }
@@ -521,7 +513,6 @@
             <img src="icon.png" alt="App Icon" onerror="this.parentNode.style.display='none'">
         </div>
 
-        <!-- BEREICH 1 -->
         <div class="toolbar">
             <div class="button-grid">
                 <label class="upload-btn upload-mp3">
@@ -529,27 +520,23 @@
                     <span class="btn-icon">🎵</span> MP3 Laden
                 </label>
                 <button onclick="splitSection()" title="Tastenkürzel: C"><span class="btn-icon">✂️</span> Teilen (C)</button>
-                <button onclick="undo()" title="Tastenkürzel: STRG+Z"><span class="btn-text-symbol">←</span> Rückgängig</button>
+                <button onclick="undo()" title="Tastenkürzel: STRG+Z"><span class="btn-icon">↩️</span> Zurück</button>
 
                 <button onclick="promptExportApp()"><span class="btn-icon">💾</span> Speichern</button>
                 <button id="merge-btn" onclick="toggleMergeMode()" title="Tastenkürzel: V"><span class="btn-icon">🔗</span> Verbinden (V)</button>
-                <button onclick="redo()" title="Tastenkürzel: STRG+Y"><span class="btn-text-symbol">→</span> Wiederholen</button>
+                <button onclick="redo()" title="Tastenkürzel: STRG+Y"><span class="btn-icon">↪️</span> Vor</button>
             </div>
         </div>
         
-        <!-- CONTROL PANEL -->
         <div class="control-panel">
-            <!-- Zeile 1: Tempo -->
             <div class="panel-row">
-                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T"><span class="btn-icon">👆</span> Tap (T)</button>
+                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T"><span class="btn-icon">🥁</span> Tap (T)</button>
                 <div class="bpm-display" id="bpm-val">-- BPM</div>
                 <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen"><span class="btn-icon">🔄</span></button>
             </div>
             
-            <!-- Zeile 2: Player -->
             <div class="panel-row">
-                <!-- KORREKTUR: "♾️" als neues, kontrastreiches Loop-Symbol eingebaut -->
-                <button id="loop-btn" class="btn-panel-sync" onclick="toggleLoop()"><span class="btn-icon">♾️</span> Loop: AUS</button>
+                <button id="loop-btn" class="btn-panel-sync" onclick="toggleLoop()"><span class="btn-icon">🔁</span> Loop: AUS</button>
                 <button id="play-pause-btn" class="btn-play-round" onclick="togglePlay()"><span class="btn-icon">▶</span></button>
                 <div class="clock" id="live-clock">00:00</div>
             </div>
@@ -741,14 +728,13 @@
             }
         }
 
-        /* Script-Logik an das neue Unendlichkeits-Emoji angepasst */
         function toggleLoop() {
             isLoopActive = !isLoopActive;
             if (isLoopActive) {
-                loopBtn.innerHTML = '<span class="btn-icon">♾️</span> Loop: AN';
+                loopBtn.innerHTML = '<span class="btn-icon">🔁</span> Loop: AN';
                 loopBtn.classList.add('active');
             } else {
-                loopBtn.innerHTML = '<span class="btn-icon">♾️</span> Loop: AUS';
+                loopBtn.innerHTML = '<span class="btn-icon">🔁</span> Loop: AUS';
                 loopBtn.classList.remove('active');
             }
         }
@@ -1034,30 +1020,26 @@
             ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
         }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-
-            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
-                splitSection();
-            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
-                e.preventDefault();
-                toggleMergeMode();
-            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
-                e.preventDefault();
-                tapTempo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                undo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
-                e.preventDefault();
-                redo();
-            } else if (e.code === 'Space') {
-                if(e.target.tagName !== 'BUTTON') {
-                    e.preventDefault();
-                    togglePlay();
-                }
+        function tapTempo(e) {
+            if(e) e.preventDefault();
+            const now = new Date().getTime();
+            if (tapTimes.length > 0 && (now - tapTimes[tapTimes.length - 1]) > 2000) {
+                tapTimes = [];
             }
-        });
+            tapTimes.push(now);
+
+            if (tapTimes.length > 1) {
+                let intervals = [];
+                for (let i = 1; i < tapTimes.length; i++) {
+                    intervals.push(tapTimes[i] - tapTimes[i - 1]);
+                }
+                const avgInterval = intervals.reduce((sum, val) => sum + val, 0) / intervals.length;
+                const bpm = Math.round(60000 / avgInterval);
+                document.getElementById('bpm-val').innerText = bpm + " BPM";
+            } else {
+                document.getElementById('bpm-val').innerText = "Tappen...";
+            }
+        }
 
         function startDrag(e, index, isTouch) {
             e.stopPropagation();
@@ -1160,6 +1142,31 @@
             playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
             clock.innerText = formatTime(targetTime);
         }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
+            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
+                splitSection();
+            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
+                e.preventDefault();
+                toggleMergeMode();
+            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
+                e.preventDefault();
+                tapTempo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                redo();
+            } else if (e.code === 'Space') {
+                if(e.target.tagName !== 'BUTTON') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            }
+        });
 
         function endPlayheadDrag(e) {
             if (!isDraggingPlayhead) return;
