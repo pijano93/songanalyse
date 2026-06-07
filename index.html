@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Struktur Analyse</title>
     
-    <!-- PWA Meta Tags für iOS & Android -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -35,7 +34,7 @@
             padding: 20px;
         }
 
-        /* Haupt-Header: Alle Boxen sind auf exakt 146px angehoben */
+        /* Haupt-Header: Hält alle 3 Blöcke auf exakt 146px Höhe */
         .header {
             display: flex;
             justify-content: flex-start;
@@ -66,23 +65,23 @@
             border-radius: 6px;
         }
 
-        /* BEREICH 1: Hauptmenü (Zentrierung optimiert über flex-direction) */
+        /* BEREICH 1: Hauptmenü */
         .toolbar {
             display: flex;
             flex-direction: column;
             justify-content: center; 
             background: #fff;
-            padding: 0 15px; /* Vertikales Padding auf 0 gesetzt, Zentrierung läuft rein über Flexbox */
+            padding: 0 15px; 
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-grow: 0; 
             height: 146px; 
         }
 
-        /* KORREKTUR: Zeilenhöhe im Grid auf 50px erhöht */
+        /* KORREKTUR: Spaltenbreite strikt auf 150px erhöht */
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(3, 140px);
+            grid-template-columns: repeat(3, 150px);
             grid-template-rows: repeat(2, 50px);
             gap: 10px;
         }
@@ -122,22 +121,21 @@
             background: var(--btn-red-hover) !important;
         }
 
-        /* BEREICH 2 & 3: Rechtes Kombi-Panel (Zentrierung optimiert über flex-direction) */
+        /* BEREICH 2 & 3: Rechtes Kombi-Panel */
         .control-panel {
             display: flex;
             flex-direction: column;
             justify-content: center; 
             gap: 10px;
             background: #fff;
-            padding: 0 15px; /* Vertikales Padding auf 0 gesetzt, Zentrierung läuft rein über Flexbox */
+            padding: 0 15px; 
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-grow: 0; 
-            width: 345px; 
+            width: 355px; /* KORREKTUR: Auf 355px verbreitert für mathematisch exakte Symmetrie */
             height: 146px; 
         }
 
-        /* KORREKTUR: Zeilenhöhe rechts auf 50px erhöht */
         .panel-row {
             display: flex;
             gap: 10px;
@@ -146,8 +144,9 @@
             height: 50px;
         }
 
+        /* KORREKTUR: Rechte Panel-Buttons wachsen synchron auf 150px mit */
         .btn-panel-sync {
-            width: 140px !important;
+            width: 150px !important;
             flex-shrink: 0;
         }
 
@@ -175,14 +174,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 50px; /* Leicht angepasst an die neue quadratische Ästhetik */
+            width: 50px; 
             flex-shrink: 0;
         }
         .btn-reset-bpm:hover {
             background: #e2e2e2 !important;
         }
 
-        /* Runde Play-Taste wächst harmonisch auf 50px mit */
         .btn-play-round {
             border-radius: 50% !important;
             width: 50px !important;
@@ -344,7 +342,7 @@
         .playhead {
             position: absolute;
             top: -10px;
-            height: 170px; /* Minimal verlängert für die höhere Box */
+            height: 170px; 
             width: 4px;
             background: #dc3545;
             z-index: 30;
@@ -487,12 +485,10 @@
     <div id="save-data" style="display:none;" data-audio="" data-markers='[{"time":0,"type":"Intro","notes":""}]'></div>
 
     <div class="header">
-        <!-- APP ICON -->
         <div class="app-icon-container">
             <img src="icon.png" alt="App Icon" onerror="this.parentNode.style.display='none'">
         </div>
 
-        <!-- BEREICH 1 -->
         <div class="toolbar">
             <div class="button-grid">
                 <label class="upload-btn upload-mp3">
@@ -508,16 +504,13 @@
             </div>
         </div>
         
-        <!-- CONTROL PANEL -->
         <div class="control-panel">
-            <!-- Zeile 1: Tempo -->
             <div class="panel-row">
                 <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T">🥁 Tap (T)</button>
                 <div class="bpm-display" id="bpm-val">-- BPM</div>
                 <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen">🔄</button>
             </div>
             
-            <!-- Zeile 2: Player -->
             <div class="panel-row">
                 <button id="loop-btn" class="btn-panel-sync" onclick="toggleLoop()">🔁 Loop: AUS</button>
                 <button id="play-pause-btn" class="btn-play-round" onclick="togglePlay()">▶</button>
@@ -852,6 +845,11 @@
                 mergeBtn.classList.remove('active');
                 container.classList.remove('merge-mode');
             }
+        }
+
+        function autoGrowTextarea(el) {
+            el.style.height = "auto";
+            el.style.height = el.scrollHeight + "px";
         }
 
         function drawTimeline() {
