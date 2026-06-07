@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Struktur Analyse</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SongAnalyse">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --text-color: #333;
+            --border-color: #ccc;
+            --btn-blue: #007bff;
+            --btn-blue-hover: #0056b3;
+            --btn-red: #dc3545;
+            --btn-red-hover: #b02a37;
+            --btn-green: #28a745;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        button, .upload-btn {
+            padding: 8px 16px;
+            cursor: pointer;
+            background: var(--btn-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        
+        .upload-btn {
+            display: inline-flex;
+        }
+
+        button:hover, .upload-btn:hover {
+            background: var(--btn-blue-hover);
+        }
+
+        button.active {
+            background: var(--btn-red);
+        }
+        button.active:hover {
+            background: var(--btn-red-hover);
+        }
+
+        .upload-mp3 {
+            background: var(--btn-green);
+        }
+
+        .clock {
+            font-size: 28px;
+            font-weight: bold;
+            font-family: monospace;
+            background: #222;
+            color: #0f0;
+            padding: 10px 20px;
+            border-radius: 6px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .player-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-right: 20px;
+        }
+
+        #timeline-wrapper {
+            background: #fff;
+            padding: 20px 20px 40px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            user-select: none;
+        }
+
+        #timeline-container {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            background: #e9ecef;
+            border: 1px solid #adb5bd;
+            border-radius: 4px;
+            cursor: pointer;
+            overflow: visible;
+        }
+
+        .segment {
+            position: absolute;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+            border-right: 2px solid #222;
+            border-radius: 2px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+            min-width: 0;
+            touch-action: manipulation;
+        }
+
+        .segment:hover {
+            filter: brightness(1.1);
+        }
+        
+        .segment-label {
+            width: 100%;
+            padding: 0 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .segment-duration {
+            position: absolute;
+            bottom: -28px;
+            width: 100%;
+            text-align: center;
+            color: #555;
+            font-size: 13px;
+            font-family: monospace;
+            font-weight: bold;
+            text-shadow: none;
+        }
+
+        .playhead {
+            position: absolute;
+            top: -10px;
+            bottom: -35px;
+            width: 4px;
+            background: #dc3545;
+            z-index: 30;
+            cursor: ew-resize;
+            touch-action: none;
+        }
+
+        .playhead::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -6px;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid #dc3545;
+        }
+
+        .playhead::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -15px;
+            width: 34px;
+            height: 25px;
+            background: transparent;
+        }
+
+        .handle {
+            position: absolute;
+            right: -12px;
+            top: 0;
+            bottom: 0;
+            width: 24px; 
+            cursor: ew-resize;
+            z-index: 20;
+            background: transparent;
+            touch-action: none;
+        }
+        
+        .handle::after {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: transparent;
+            transition: background 0.1s;
+        }
+
+        .handle:hover::after {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .merge-mode .handle {
+            cursor: pointer;
+        }
+        .merge-mode .handle::after {
+            background: rgba(220, 53, 69, 0.4);
+            width: 6px;
+            left: 9px;
+        }
+        .merge-mode .handle:hover::after {
+            background: rgba(220, 53, 69, 0.9);
+        }
+        
+        .merge-mode-active-text {
+            color: var(--btn-red);
+            font-weight: bold;
+            margin-left: 10px;
+            display: none;
+        }
+
+        #context-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 100;
+            list-style: none;
+            padding: 5px 0;
+            margin: 0;
+            min-width: 160px;
+        }
+
+        #context-menu li {
+            padding: 8px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        #context-menu li:hover {
+            background: #f0f0f0;
+        }
+
+        .color-box {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            border: 1px solid #aaa;
+        }
+
+        .menu-divider {
+            height: 1px;
+            background: #eee;
+            margin: 5px 0;
+            padding: 0 !important;
+            cursor: default !important;
+        }
+        .menu-divider:hover {
+            background: #eee !important;
+        }
+
+        /* Farben */
+        .color-intro { background: #4682B4; }    
+        .color-verse { background: #E1C03F; }    
+        .color-prechorus { background: #F0943A; } 
+        .color-chorus { background: #449E48; }    
+        .color-interlude { background: #87CEEB; } 
+        .color-bridge { background: #C72424; }    
+        .color-solo { background: #222222; }      
+        .color-break { background: #808080; }     
+        .color-outro { background: #4682B4; }    
+        .color-custom { background: #555555; } 
+
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="save-data" style="display:none;" data-audio="" data-markers='[{"time":0,"type":"Intro"}]'></div>
+
+    <div class="header">
+        <div class="toolbar">
+            <label class="upload-btn upload-mp3">
+                <input type="file" id="audio-upload" accept="audio/mp3, audio/wav, audio/ogg">
+                🎵 MP3 Laden
+            </label>
+            
+            <div style="width: 2px; height: 30px; background: #ccc; margin: 0 10px;"></div>
+            
+            <button onclick="promptExportApp()" title="Speichert eine HTML-Datei mit dem Song und der Analyse">💾 Als App speichern</button>
+
+            <div style="width: 2px; height: 30px; background: #ccc; margin: 0 10px;"></div>
+            
+            <button onclick="splitSection()" title="Tastenkürzel: C">✂️ Teilen (C)</button>
+            <button id="merge-btn" onclick="toggleMergeMode()">🔗 Zusammenfügen</button>
+            <span class="merge-mode-active-text" id="merge-text">Zusammenfügen active! Klicke auf Trennlinie.</span>
+            
+            <div style="width: 2px; height: 30px; background: #ccc; margin: 0 10px;"></div>
+            <button onclick="undo()" title="Tastenkürzel: STRG+Z">↩️ Zurück</button>
+            <button onclick="redo()" title="Tastenkürzel: STRG+Y">↪️ Vor</button>
+        </div>
+        
+        <div class="player-controls">
+            <button id="play-pause-btn" onclick="togglePlay()" style="border-radius: 50%; width: 50px; height: 50px; justify-content: center; font-size: 20px;">▶</button>
+            <div class="clock" id="live-clock">00:00</div>
+        </div>
+    </div>
+
+    <div id="timeline-wrapper">
+        <div id="timeline-container">
+            <div class="playhead" id="playhead"></div>
+        </div>
+    </div>
+
+    <audio id="audio-player"></audio>
+
+    <ul id="context-menu">
+        <li onclick="setSegmentType('Intro')"><div class="color-box color-intro"></div> Intro</li>
+        <li onclick="setSegmentType('Verse')"><div class="color-box color-verse"></div> Verse</li>
+        <li onclick="setSegmentType('Prechorus')"><div class="color-box color-prechorus"></div> Prechorus</li>
+        <li onclick="setSegmentType('Chorus')"><div class="color-box color-chorus"></div> Chorus</li>
+        <li onclick="setSegmentType('Interlude')"><div class="color-box color-interlude"></div> Interlude</li>
+        <li onclick="setSegmentType('Bridge')"><div class="color-box color-bridge"></div> Bridge</li>
+        <li onclick="setSegmentType('Solo')"><div class="color-box color-solo"></div> Solo</li>
+        <li onclick="setSegmentType('Break')"><div class="color-box color-break"></div> Break</li>
+        <li onclick="setSegmentType('Outro')"><div class="color-box color-outro"></div> Outro</li>
+        <li class="menu-divider"></li>
+        <li onclick="setCustomSegmentType()"><div class="color-box color-custom"></div> Eigener Text...</li>
+    </ul>
+
+    <script>
+        const audio = document.getElementById('audio-player');
+        const container = document.getElementById('timeline-container');
+        const playhead = document.getElementById('playhead');
+        const clock = document.getElementById('live-clock');
+        const contextMenu = document.getElementById('context-menu');
+        const mergeBtn = document.getElementById('merge-btn');
+        const mergeText = document.getElementById('merge-text');
+        const playBtn = document.getElementById('play-pause-btn');
+
+        let markers = [{"time": 0, "type": "Intro"}];
+        let historyStack = [];
+        let historyIndex = -1;
+        let isMergeMode = false;
+        
+        let isDragging = false;
+        let isDraggingPlayhead = false;
+        let dragMarkerIndex = -1;
+        let activeSegmentIndex = -1;
+        let dragHandleElement = null;
+
+        const colors = {
+            'Intro': '#4682B4', 'Verse': '#E1C03F', 'Prechorus': '#F0943A',
+            'Chorus': '#449E48', 'Interlude': '#87CEEB', 'Bridge': '#C72424',
+            'Solo': '#222222', 'Break': '#808080', 'Outro': '#4682B4'
+        };
+        const defaultCustomColor = '#555555';
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log("PWA Service Worker aktiv!"))
+            .catch(err => console.log("Service Worker Fehler", err));
+        }
+
+        window.onload = function() {
+            const saveData = document.getElementById('save-data');
+            const audioSrc = saveData.getAttribute('data-audio');
+            const markerData = saveData.getAttribute('data-markers');
+
+            if (markerData) {
+                markers = JSON.parse(markerData);
+            }
+            saveState(true);
+
+            if (audioSrc) {
+                clock.innerText = "LÄDT...";
+                initAudio(audioSrc);
+            }
+            
+            playhead.addEventListener('mousedown', (e) => startPlayheadDrag(e, false));
+            playhead.addEventListener('touchstart', (e) => startPlayheadDrag(e, true), {passive: false});
+        };
+
+        document.getElementById('audio-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            clock.innerText = "LÄDT...";
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const b64 = evt.target.result;
+                document.getElementById('save-data').setAttribute('data-audio', b64);
+                markers = [{"time": 0, "type": "Intro"}];
+                historyStack = [];
+                historyIndex = -1;
+                saveState(true);
+                initAudio(b64);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function initAudio(src) {
+            audio.src = src;
+            audio.load();
+            audio.onloadedmetadata = () => {
+                drawTimeline();
+                updateClock();
+            };
+        }
+
+        function togglePlay() {
+            if (!audio.src) return;
+            if (audio.paused) {
+                audio.play();
+                playBtn.innerText = '⏸';
+            } else {
+                audio.pause();
+                playBtn.innerText = '▶';
+            }
+        }
+
+        function pauseAudioOnly() {
+            if (!audio.src) return;
+            if (!audio.paused) {
+                audio.pause();
+                playBtn.innerText = '▶';
+            }
+        }
+
+        audio.addEventListener('timeupdate', () => {
+            if (!isDragging && !isDraggingPlayhead) {
+                updateClock();
+                updatePlayhead();
+            }
+        });
+
+        audio.addEventListener('ended', () => {
+            playBtn.innerText = '▶';
+        });
+
+        function formatTime(sec) {
+            if (isNaN(sec)) return "00:00";
+            let m = Math.floor(sec / 60);
+            let s = Math.floor(sec % 60);
+            return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+        }
+
+        function updateClock() {
+            clock.innerText = formatTime(audio.currentTime);
+        }
+
+        function updatePlayhead() {
+            if (!audio.duration) return;
+            let pct = (audio.currentTime / audio.duration) * 100;
+            playhead.style.left = pct + '%';
+        }
+
+        container.addEventListener('mousedown', function(e) {
+            if (!audio.duration) return;
+            if (e.target.classList.contains('handle') || e.target.classList.contains('playhead') || e.target.classList.contains('segment') || e.button !== 0) return;
+            
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const pct = Math.max(0, Math.min(1, x / rect.width));
+            audio.currentTime = pct * audio.duration;
+            updatePlayhead();
+            updateClock();
+        });
+
+        container.addEventListener('touchstart', function(e) {
+            if (!audio.duration) return;
+            if (e.target.classList.contains('handle') || e.target.classList.contains('playhead') || e.target.classList.contains('segment')) return;
+            
+            const touch = e.touches[0];
+            const rect = container.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const pct = Math.max(0, Math.min(1, x / rect.width));
+            audio.currentTime = pct * audio.duration;
+            updatePlayhead();
+            updateClock();
+        }, {passive: true});
+
+        function splitSection() {
+            if (!audio.duration || audio.currentTime === 0) return;
+            const t = audio.currentTime;
+            
+            if (markers.some(m => Math.abs(m.time - t) < 0.2)) return;
+
+            let segmentType = 'Intro';
+            for (let i = markers.length - 1; i >= 0; i--) {
+                if (t >= markers[i].time) {
+                    segmentType = markers[i].type;
+                    break;
+                }
+            }
+
+            markers.push({"time": t, "type": segmentType});
+            markers.sort((a, b) => a.time - b.time);
+            saveState();
+            drawTimeline();
+        }
+
+        function toggleMergeMode() {
+            isMergeMode = !isMergeMode;
+            if (isMergeMode) {
+                mergeBtn.classList.add('active');
+                container.classList.add('merge-mode');
+                mergeText.style.display = 'inline';
+            } else {
+                mergeBtn.classList.remove('active');
+                container.classList.remove('merge-mode');
+                mergeText.style.display = 'none';
+            }
+        }
+
+        function drawTimeline() {
+            document.querySelectorAll('.segment').forEach(el => el.remove());
+            if (!audio.duration) return;
+            const duration = audio.duration;
+
+            for (let i = 0; i < markers.length; i++) {
+                const start = markers[i].time;
+                const end = (i < markers.length - 1) ? markers[i+1].time : duration;
+                
+                const startPct = (start / duration) * 100;
+                const widthPct = ((end - start) / duration) * 100;
+
+                const seg = document.createElement('div');
+                seg.className = 'segment';
+                seg.style.left = startPct + '%';
+                seg.style.width = widthPct + '%';
+                seg.style.backgroundColor = colors[markers[i].type] || defaultCustomColor;
+                seg.setAttribute('data-index', i);
+                seg.setAttribute('title', markers[i].type + ' (' + formatTime(end - start) + ')');
+
+                const label = document.createElement('div');
+                label.className = 'segment-label';
+                label.innerText = markers[i].type;
+                seg.appendChild(label);
+
+                const durText = document.createElement('div');
+                durText.className = 'segment-duration';
+                durText.innerText = formatTime(end - start);
+                seg.appendChild(durText);
+
+                if (i < markers.length - 1) {
+                    const handle = document.createElement('div');
+                    handle.className = 'handle';
+                    
+                    handle.addEventListener('mousedown', (e) => startDrag(e, i + 1, false));
+                    handle.addEventListener('touchstart', (e) => startDrag(e, i + 1, true), {passive: false});
+                    
+                    seg.appendChild(handle);
+                }
+
+                // Klick auf ein Formteil springt an dessen BEGINN
+                seg.addEventListener('click', (e) => {
+                    if (isMergeMode) return;
+                    audio.currentTime = start;
+                    updatePlayhead();
+                    updateClock();
+                });
+
+                // Fingertipp auf ein Formteil springt an dessen BEGINN
+                let touchStartTime = 0;
+                seg.addEventListener('touchstart', (e) => {
+                    touchStartTime = new Date().getTime();
+                }, {passive: true});
+
+                seg.addEventListener('touchend', (e) => {
+                    const touchEndTime = new Date().getTime();
+                    if ((touchEndTime - touchStartTime) < 200) {
+                        setTimeout(() => {
+                            if (contextMenu.style.display !== 'block') {
+                                if (isMergeMode || isDragging) return;
+                                audio.currentTime = start;
+                                updatePlayhead();
+                                updateClock();
+                            }
+                        }, 250);
+                    }
+                });
+
+                // PC Rechtsklick
+                seg.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    activeSegmentIndex = i;
+                    contextMenu.style.display = 'block';
+                    contextMenu.style.left = e.pageX + 'px';
+                    contextMenu.style.top = e.pageY + 'px';
+                });
+
+                // PC Doppelklick
+                seg.addEventListener('dblclick', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    pauseAudioOnly();
+                    activeSegmentIndex = i;
+                    contextMenu.style.display = 'block';
+                    contextMenu.style.left = e.pageX + 'px';
+                    contextMenu.style.top = e.pageY + 'px';
+                });
+
+                // Touch-Doppeltipp für iPadOS
+                let lastTap = 0;
+                seg.addEventListener('touchend', (e) => {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    if (tapLength < 400 && tapLength > 0) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        pauseAudioOnly();
+                        activeSegmentIndex = i;
+                        const touch = e.changedTouches[0];
+                        contextMenu.style.display = 'block';
+                        contextMenu.style.left = touch.pageX + 'px';
+                        contextMenu.style.top = touch.pageY + 'px';
+                    }
+                    lastTap = currentTime;
+                });
+
+                container.appendChild(seg);
+            }
+        }
+
+        function startDrag(e, index, isTouch) {
+            e.stopPropagation();
+            if (isMergeMode) {
+                if (isTouch) e.preventDefault();
+                markers.splice(index, 1);
+                saveState();
+                drawTimeline();
+                return;
+            }
+            if (!isTouch && e.button !== 0) return;
+            isDragging = true;
+            dragMarkerIndex = index;
+            dragHandleElement = e.target.parentNode;
+
+            if (isTouch) {
+                document.addEventListener('touchmove', processTouchDrag, {passive: false});
+                document.addEventListener('touchend', endDrag, {passive: false});
+            } else {
+                document.addEventListener('mousemove', processMouseDrag);
+                document.addEventListener('mouseup', endDrag);
+            }
+        }
+
+        function calculateNewTime(clientX) {
+            const rect = container.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const pct = Math.max(0, Math.min(1, x / rect.width));
+            let newTime = pct * audio.duration;
+            const prevTime = markers[dragMarkerIndex - 1].time;
+            const nextTime = dragMarkerIndex < markers.length - 1 ? markers[dragMarkerIndex + 1].time : audio.duration;
+            return Math.max(prevTime + 0.1, Math.min(nextTime - 0.1, newTime));
+        }
+
+        function processMouseDrag(e) {
+            if (!isDragging) return;
+            moveHandleVisual(calculateNewTime(e.clientX));
+        }
+
+        function processTouchDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            moveHandleVisual(calculateNewTime(e.touches[0].clientX));
+        }
+
+        function moveHandleVisual(newTime) {
+            markers[dragMarkerIndex].time = newTime;
+            const duration = audio.duration;
+            const start = markers[dragMarkerIndex - 1].time;
+            const widthPct = ((newTime - start) / duration) * 100;
+            dragHandleElement.style.width = widthPct + '%';
+            
+            const nextSeg = dragHandleElement.nextSibling;
+            if (nextSeg && nextSeg.classList.contains('segment')) {
+                const nextEnd = (dragMarkerIndex < markers.length - 1) ? markers[dragMarkerIndex + 1].time : duration;
+                const nextWidthPct = ((nextEnd - newTime) / duration) * 100;
+                nextSeg.style.left = ((newTime / duration) * 100) + '%';
+                nextSeg.style.width = nextWidthPct + '%';
+            }
+        }
+
+        function endDrag(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            document.removeEventListener('mousemove', processMouseDrag);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchmove', processTouchDrag);
+            document.removeEventListener('touchend', endDrag);
+            saveState();
+            drawTimeline();
+        }
+
+        function startPlayheadDrag(e, isTouch) {
+            e.stopPropagation();
+            if (!audio.duration) return;
+            if (!isTouch && e.button !== 0) return;
+            isDraggingPlayhead = true;
+
+            if (isTouch) {
+                document.addEventListener('touchmove', processPlayheadTouchDrag, {passive: false});
+                document.addEventListener('touchend', endPlayheadDrag, {passive: false});
+            } else {
+                document.addEventListener('mousemove', processPlayheadMouseDrag);
+                document.addEventListener('mouseup', endPlayheadDrag);
+            }
+        }
+
+        function getPlayheadTimeFromX(clientX) {
+            const rect = container.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const pct = Math.max(0, Math.min(1, x / rect.width));
+            return pct * audio.duration;
+        }
+
+        function processPlayheadMouseDrag(e) {
+            if (!isDraggingPlayhead) return;
+            const targetTime = getPlayheadTimeFromX(e.clientX);
+            playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
+            clock.innerText = formatTime(targetTime);
+        }
+
+        function processPlayheadTouchDrag(e) {
+            if (!isDraggingPlayhead) return;
+            e.preventDefault();
+            const targetTime = getPlayheadTimeFromX(e.touches[0].clientX);
+            playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
+            clock.innerText = formatTime(targetTime);
+        }
+
+        function endPlayheadDrag(e) {
+            if (!isDraggingPlayhead) return;
+            isDraggingPlayhead = false;
+            document.removeEventListener('mousemove', processPlayheadMouseDrag);
+            document.removeEventListener('mouseup', endPlayheadDrag);
+            document.removeEventListener('touchmove', processPlayheadTouchDrag);
+            document.removeEventListener('touchend', endPlayheadDrag);
+
+            let finalX = e.clientX;
+            if (e.changedTouches && e.changedTouches.length > 0) {
+                finalX = e.changedTouches[0].clientX;
+            }
+            const targetTime = getPlayheadTimeFromX(finalX);
+            audio.currentTime = targetTime;
+            updatePlayhead();
+            updateClock();
+        }
+
+        function setSegmentType(type) {
+            if (activeSegmentIndex !== -1) {
+                markers[activeSegmentIndex].type = type;
+                saveState();
+                drawTimeline();
+            }
+            contextMenu.style.display = 'none';
+        }
+
+        function setCustomSegmentType() {
+            if (activeSegmentIndex !== -1) {
+                const currentType = markers[activeSegmentIndex].type;
+                const defaultPrompt = colors[currentType] ? "" : currentType;
+                const customText = prompt("Bitte gib eine eigene Bezeichnung für diesen Formteil ein:", defaultPrompt);
+                
+                if (customText !== null && customText.trim() !== "") {
+                    markers[activeSegmentIndex].type = customText.trim();
+                    saveState();
+                    drawTimeline();
+                }
+            }
+            contextMenu.style.display = 'none';
+        }
+
+        document.addEventListener('click', (e) => {
+            if(e.target.closest('#context-menu') === null) {
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        function saveState(initial = false) {
+            if (!initial) {
+                historyStack = historyStack.slice(0, historyIndex + 1);
+            }
+            historyStack.push(JSON.parse(JSON.stringify(markers)));
+            historyIndex++;
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                markers = JSON.parse(JSON.stringify(historyStack[historyIndex]));
+                drawTimeline();
+            }
+        }
+
+        function redo() {
+            if (historyIndex < historyStack.length - 1) {
+                historyIndex++;
+                markers = JSON.parse(JSON.stringify(historyStack[historyIndex]));
+                drawTimeline();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
+                splitSection();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                redo();
+            } else if (e.code === 'Space') {
+                if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            }
+        });
+        
+        function promptExportApp() {
+            const fileName = prompt("Bitte gib einen Dateinamen für deine Analyse ein:", "Song_Analyse_Projekt.html");
+            if (fileName !== null) {
+                let finalName = fileName.trim();
+                if (!finalName.toLowerCase().endsWith('.html')) {
+                    finalName += '.html';
+                }
+                exportApp(finalName);
+            }
+        }
+
+        function exportApp(fileName) {
+            const saveDataElem = document.getElementById('save-data');
+            if (!saveDataElem.getAttribute('data-audio')) {
+                alert("Bitte lade zuerst eine MP3-Datei!");
+                return;
+            }
+
+            saveDataElem.setAttribute('data-markers', JSON.stringify(markers));
+            const docClone = document.documentElement.cloneNode(true);
+            docClone.querySelector('#context-menu').style.display = 'none';
+            docClone.querySelector('#play-pause-btn').innerText = '▶';
+            
+            const htmlContent = "<!DOCTYPE html>\n" + docClone.outerHTML;
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            
+            if (isIOS && navigator.share) {
+                const file = new File([htmlContent], fileName, { type: 'text/html' });
+                navigator.share({ files: [file], title: 'Song Analyse Export' }).catch(err => console.log(err));
+            } else {
+                const blob = new Blob([htmlContent], {type: "text/html;charset=utf-8"});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+    </script>
+</body>
+</html>
