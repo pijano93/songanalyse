@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Struktur Analyse</title>
     
+    <!-- PWA Meta Tags für iOS & Android -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -103,7 +104,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* WUNSCH: Loop-Button mit absolut starrer, fester Breite */
         #loop-btn {
             min-width: 130px;
             max-width: 130px;
@@ -270,15 +270,14 @@
             font-family: monospace;
         }
 
-        /* WUNSCH: Textbereich wächst automatisch; absolut keine Zieh- und Scrollbalken */
         .table-segment-cell textarea {
             width: 100%;
             min-height: 70px;
             border: none;
             padding: 8px;
             font-size: 13px;
-            overflow-y: hidden; /* Entfernt die Scrollleiste komplett */
-            resize: none;      /* Entfernt den Zieh-Griff unten rechts */
+            overflow-y: hidden;
+            resize: none;
             background: transparent;
             font-family: inherit;
             display: block;
@@ -422,6 +421,7 @@
     <div id="save-data" style="display:none;" data-audio="" data-markers='[{"time":0,"type":"Intro","notes":""}]'></div>
 
     <div class="header">
+        <!-- BEREICH 1 -->
         <div class="toolbar">
             <div class="button-grid">
                 <label class="upload-btn upload-mp3">
@@ -437,12 +437,14 @@
             </div>
         </div>
         
+        <!-- BEREICH 2 -->
         <div class="tempo-panel">
             <button class="btn-tapper" onclick="tapTempo(event)" title="Tastenkürzel: T">🥁 Tap (T)</button>
             <div class="bpm-display" id="bpm-val">-- BPM</div>
             <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen">🔄</button>
         </div>
 
+        <!-- BEREICH 3 -->
         <div class="player-panel">
             <button id="loop-btn" onclick="toggleLoop()">🔁 Loop: AUS</button>
             <button id="play-pause-btn" onclick="togglePlay()" style="border-radius: 50%; width: 50px; height: 50px; justify-content: center; font-size: 20px;">▶</button>
@@ -778,7 +780,6 @@
             }
         }
 
-        // --- HILFSFUNKTION: Automatische Höhenanpassung für die Textfelder ---
         function autoGrowTextarea(el) {
             el.style.height = "auto";
             el.style.height = el.scrollHeight + "px";
@@ -893,9 +894,10 @@
                 cellHeader.className = 'table-segment-header';
                 cellHeader.style.borderTop = `3px solid ${colors[markers[i].type] || defaultCustomColor}`;
                 
+                // KORREKTUR: Jetzt nur noch der reine Name im Titel, ohne die Dauer in Klammern
                 const cellTitle = document.createElement('div');
                 cellTitle.className = 'table-segment-title';
-                cellTitle.innerText = `${markers[i].type} (${formatTime(end - start)})`;
+                cellTitle.innerText = markers[i].type;
 
                 const cellRange = document.createElement('div');
                 cellRange.className = 'table-segment-range';
@@ -908,7 +910,6 @@
                 textarea.placeholder = "Anmerkungen...";
                 textarea.value = markers[i].notes || "";
                 
-                // Live-Wachstums-Event und Datensicherung gekoppelt
                 textarea.addEventListener('input', (e) => {
                     markers[i].notes = e.target.value;
                     document.getElementById('save-data').setAttribute('data-markers', JSON.stringify(markers));
@@ -919,7 +920,6 @@
                 cell.appendChild(textarea);
                 tableContainer.appendChild(cell);
 
-                // Initiale Höhenberechnung direkt nach dem Laden
                 setTimeout(() => { autoGrowTextarea(textarea); }, 10);
             }
         }
@@ -1010,11 +1010,12 @@
                 nextSeg.style.width = nextWidthPct + '%';
                 if(cells[dragMarkerIndex]) cells[dragMarkerIndex].style.width = nextWidthPct + '%';
                 
+                // KORREKTUR: Live-Update angepasst (keine Dauer in Klammern)
                 if(cells[dragMarkerIndex - 1]) {
-                    cells[dragMarkerIndex - 1].querySelector('.table-segment-title').innerText = `${markers[dragMarkerIndex - 1].type} (${formatTime(newTime - start)})`;
+                    cells[dragMarkerIndex - 1].querySelector('.table-segment-title').innerText = markers[dragMarkerIndex - 1].type;
                     cells[dragMarkerIndex - 1].querySelector('.table-segment-range').innerText = `${formatTime(start)} - ${formatTime(newTime)}`;
                 }
-                cells[dragMarkerIndex].querySelector('.table-segment-title').innerText = `${markers[dragMarkerIndex].type} (${formatTime(nextEnd - newTime)})`;
+                cells[dragMarkerIndex].querySelector('.table-segment-title').innerText = markers[dragMarkerIndex].type;
                 cells[dragMarkerIndex].querySelector('.table-segment-range').innerText = `${formatTime(newTime)} - ${formatTime(nextEnd)}`;
             }
         }
@@ -1049,6 +1050,31 @@
             playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
             clock.innerText = formatTime(targetTime);
         }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
+            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
+                splitSection();
+            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
+                e.preventDefault();
+                toggleMergeMode();
+            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
+                e.preventDefault();
+                tapTempo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                redo();
+            } else if (e.code === 'Space') {
+                if(e.target.tagName !== 'BUTTON') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            }
+        });
 
         function endPlayheadDrag(e) {
             if (!isDraggingPlayhead) return;
@@ -1121,32 +1147,6 @@
             historyStack.push(JSON.parse(JSON.stringify(markers)));
             historyIndex++;
         }
-
-        // SHORTCUTS (Mit Textarea-Schutz für alle Tasten)
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-
-            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
-                splitSection();
-            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
-                e.preventDefault();
-                toggleMergeMode();
-            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
-                e.preventDefault();
-                tapTempo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                undo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
-                e.preventDefault();
-                redo();
-            } else if (e.code === 'Space') {
-                if(e.target.tagName !== 'BUTTON') {
-                    e.preventDefault();
-                    togglePlay();
-                }
-            }
-        });
 
         function undo() {
             if (historyIndex > 0) {
