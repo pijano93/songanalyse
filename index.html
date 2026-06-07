@@ -35,7 +35,7 @@
             padding: 20px;
         }
 
-        /* Haupt-Header: Flex-Elemente richten sich linksbündig aus */
+        /* Haupt-Header: Alle Boxen sind auf exakt 146px angehoben */
         .header {
             display: flex;
             justify-content: flex-start;
@@ -45,7 +45,7 @@
             flex-wrap: wrap;
         }
 
-        /* KORREKTUR: Höhe exakt auf 136px angehoben, inklusive Padding-Ausgleich */
+        /* Programmsymbol links außen */
         .app-icon-container {
             display: flex;
             align-items: center;
@@ -54,8 +54,8 @@
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            width: 136px; 
-            height: 136px;
+            width: 146px; 
+            height: 146px;
             flex-shrink: 0;
         }
 
@@ -66,22 +66,24 @@
             border-radius: 6px;
         }
 
-        /* BEREICH 1: Hauptmenü */
+        /* BEREICH 1: Hauptmenü (Zentrierung optimiert über flex-direction) */
         .toolbar {
             display: flex;
+            flex-direction: column;
+            justify-content: center; 
             background: #fff;
-            padding: 15px;
+            padding: 0 15px; /* Vertikales Padding auf 0 gesetzt, Zentrierung läuft rein über Flexbox */
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-grow: 0; 
-            height: 136px; /* Feste Höhe für Symmetrie */
+            height: 146px; 
         }
 
-        /* Festes Grid: Jeder Button ist strikt 130px breit */
+        /* KORREKTUR: Zeilenhöhe im Grid auf 50px erhöht */
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(3, 130px);
-            grid-template-rows: repeat(2, 38px);
+            grid-template-columns: repeat(3, 140px);
+            grid-template-rows: repeat(2, 50px);
             gap: 10px;
         }
 
@@ -120,30 +122,32 @@
             background: var(--btn-red-hover) !important;
         }
 
-        /* BEREICH 2 & 3: Rechtes Kombi-Panel */
+        /* BEREICH 2 & 3: Rechtes Kombi-Panel (Zentrierung optimiert über flex-direction) */
         .control-panel {
             display: flex;
             flex-direction: column;
+            justify-content: center; 
             gap: 10px;
             background: #fff;
-            padding: 15px;
+            padding: 0 15px; /* Vertikales Padding auf 0 gesetzt, Zentrierung läuft rein über Flexbox */
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-grow: 0; 
-            width: 325px; 
-            height: 136px; /* Feste Höhe für Symmetrie */
+            width: 345px; 
+            height: 146px; 
         }
 
+        /* KORREKTUR: Zeilenhöhe rechts auf 50px erhöht */
         .panel-row {
             display: flex;
             gap: 10px;
             align-items: center;
             width: 100%;
-            height: 38px;
+            height: 50px;
         }
 
         .btn-panel-sync {
-            width: 130px !important;
+            width: 140px !important;
             flex-shrink: 0;
         }
 
@@ -171,17 +175,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 45px;
+            width: 50px; /* Leicht angepasst an die neue quadratische Ästhetik */
             flex-shrink: 0;
         }
         .btn-reset-bpm:hover {
             background: #e2e2e2 !important;
         }
 
+        /* Runde Play-Taste wächst harmonisch auf 50px mit */
         .btn-play-round {
             border-radius: 50% !important;
-            width: 38px !important;
-            height: 38px !important;
+            width: 50px !important;
+            height: 50px !important;
             flex-shrink: 0;
             padding: 0 !important;
         }
@@ -339,7 +344,7 @@
         .playhead {
             position: absolute;
             top: -10px;
-            height: 160px;
+            height: 170px; /* Minimal verlängert für die höhere Box */
             width: 4px;
             background: #dc3545;
             z-index: 30;
@@ -482,12 +487,12 @@
     <div id="save-data" style="display:none;" data-audio="" data-markers='[{"time":0,"type":"Intro","notes":""}]'></div>
 
     <div class="header">
-        <!-- DAS PROGRAMMSYMBOL (Höhe korrigiert) -->
+        <!-- APP ICON -->
         <div class="app-icon-container">
             <img src="icon.png" alt="App Icon" onerror="this.parentNode.style.display='none'">
         </div>
 
-        <!-- BEREICH 1: Hauptmenü -->
+        <!-- BEREICH 1 -->
         <div class="toolbar">
             <div class="button-grid">
                 <label class="upload-btn upload-mp3">
@@ -779,31 +784,6 @@
             clock.innerText = formatTime(audio.currentTime);
         }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-
-            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
-                splitSection();
-            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
-                e.preventDefault();
-                toggleMergeMode();
-            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
-                e.preventDefault();
-                tapTempo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                undo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
-                e.preventDefault();
-                redo();
-            } else if (e.code === 'Space') {
-                if(e.target.tagName !== 'BUTTON') {
-                    e.preventDefault();
-                    togglePlay();
-                }
-            }
-        });
-
         function updatePlayhead() {
             if (!audio.duration) return;
             let pct = (audio.currentTime / audio.duration) * 100;
@@ -872,11 +852,6 @@
                 mergeBtn.classList.remove('active');
                 container.classList.remove('merge-mode');
             }
-        }
-
-        function autoGrowTextarea(el) {
-            el.style.height = "auto";
-            el.style.height = el.scrollHeight + "px";
         }
 
         function drawTimeline() {
@@ -1141,6 +1116,31 @@
             playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
             clock.innerText = formatTime(targetTime);
         }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
+            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
+                splitSection();
+            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
+                e.preventDefault();
+                toggleMergeMode();
+            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
+                e.preventDefault();
+                tapTempo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                redo();
+            } else if (e.code === 'Space') {
+                if(e.target.tagName !== 'BUTTON') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            }
+        });
 
         function endPlayheadDrag(e) {
             if (!isDraggingPlayhead) return;
