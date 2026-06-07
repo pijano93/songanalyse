@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Struktur Analyse</title>
     
+    <!-- PWA Meta Tags für iOS & Android -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,24 +35,46 @@
             padding: 20px;
         }
 
-        /* Haupt-Header: Flex-Elemente richten sich links und rechts aus ohne zu dehnen */
+        /* Haupt-Header: Flex-Elemente richten sich linksbündig aus */
         .header {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            justify-content: flex-start;
+            align-items: stretch;
             margin-bottom: 20px;
-            gap: 15px;
+            gap: 20px;
             flex-wrap: wrap;
         }
 
-        /* BEREICH 1: Linkes Hauptmenü - weisser Hintergrund umschließt nur die festen Buttons */
+        /* KORREKTUR: Höhe exakt auf 136px angehoben, inklusive Padding-Ausgleich */
+        .app-icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            width: 136px; 
+            height: 136px;
+            flex-shrink: 0;
+        }
+
+        .app-icon-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        /* BEREICH 1: Hauptmenü */
         .toolbar {
             display: flex;
             background: #fff;
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex-grow: 0; /* Verhindert das unendliche Mitwachsen */
+            flex-grow: 0; 
+            height: 136px; /* Feste Höhe für Symmetrie */
         }
 
         /* Festes Grid: Jeder Button ist strikt 130px breit */
@@ -97,7 +120,7 @@
             background: var(--btn-red-hover) !important;
         }
 
-        /* BEREICH 2 & 3: Rechtes Kombi-Panel - Jetzt absolut fest gebaut wie das linke Grid */
+        /* BEREICH 2 & 3: Rechtes Kombi-Panel */
         .control-panel {
             display: flex;
             flex-direction: column;
@@ -106,11 +129,11 @@
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex-grow: 0; /* Verhindert das unendliche Mitwachsen */
-            width: 325px; /* Exakt abgestimmt auf die inneren Breiten */
+            flex-grow: 0; 
+            width: 325px; 
+            height: 136px; /* Feste Höhe für Symmetrie */
         }
 
-        /* Horizontale Zeilen */
         .panel-row {
             display: flex;
             gap: 10px;
@@ -119,13 +142,11 @@
             height: 38px;
         }
 
-        /* WUNSCH: Buttons in der rechten Box sind genau 130px breit wie links */
         .btn-panel-sync {
             width: 130px !important;
             flex-shrink: 0;
         }
 
-        /* BPM-Anzeigefeld füllt den restlichen symmetrischen Platz */
         .bpm-display {
             font-weight: bold;
             font-size: 14px;
@@ -157,7 +178,6 @@
             background: #e2e2e2 !important;
         }
 
-        /* Runde Play-Taste fügt sich nahtlos ein */
         .btn-play-round {
             border-radius: 50% !important;
             width: 38px !important;
@@ -166,7 +186,6 @@
             padding: 0 !important;
         }
 
-        /* Die Uhr schließt bündig mit dem BPM-Bereich darüber ab */
         .clock {
             font-size: 24px;
             font-weight: bold;
@@ -429,10 +448,9 @@
             cursor: default !important;
         }
 
-        /* Umbruch-Optimierung für kleinere iPads (Standard-iPad) */
         @media (max-width: 1100px) {
             .header {
-                justify-content: center;
+                justify-content: flex-start;
             }
             #waveform-container {
                 height: 60px;
@@ -464,6 +482,12 @@
     <div id="save-data" style="display:none;" data-audio="" data-markers='[{"time":0,"type":"Intro","notes":""}]'></div>
 
     <div class="header">
+        <!-- DAS PROGRAMMSYMBOL (Höhe korrigiert) -->
+        <div class="app-icon-container">
+            <img src="icon.png" alt="App Icon" onerror="this.parentNode.style.display='none'">
+        </div>
+
+        <!-- BEREICH 1: Hauptmenü -->
         <div class="toolbar">
             <div class="button-grid">
                 <label class="upload-btn upload-mp3">
@@ -479,13 +503,16 @@
             </div>
         </div>
         
+        <!-- CONTROL PANEL -->
         <div class="control-panel">
+            <!-- Zeile 1: Tempo -->
             <div class="panel-row">
                 <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T">🥁 Tap (T)</button>
                 <div class="bpm-display" id="bpm-val">-- BPM</div>
                 <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen">🔄</button>
             </div>
             
+            <!-- Zeile 2: Player -->
             <div class="panel-row">
                 <button id="loop-btn" class="btn-panel-sync" onclick="toggleLoop()">🔁 Loop: AUS</button>
                 <button id="play-pause-btn" class="btn-play-round" onclick="togglePlay()">▶</button>
@@ -752,6 +779,31 @@
             clock.innerText = formatTime(audio.currentTime);
         }
 
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
+            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
+                splitSection();
+            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
+                e.preventDefault();
+                toggleMergeMode();
+            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
+                e.preventDefault();
+                tapTempo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                redo();
+            } else if (e.code === 'Space') {
+                if(e.target.tagName !== 'BUTTON') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            }
+        });
+
         function updatePlayhead() {
             if (!audio.duration) return;
             let pct = (audio.currentTime / audio.duration) * 100;
@@ -962,6 +1014,11 @@
             }
         }
 
+        function drawDefaultWaveform() {
+            ctx.fillStyle = '#adb5bd';
+            ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
+        }
+
         function tapTempo(e) {
             if(e) e.preventDefault();
             const now = new Date().getTime();
@@ -1084,31 +1141,6 @@
             playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
             clock.innerText = formatTime(targetTime);
         }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-
-            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
-                splitSection();
-            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
-                e.preventDefault();
-                toggleMergeMode();
-            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
-                e.preventDefault();
-                tapTempo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                undo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
-                e.preventDefault();
-                redo();
-            } else if (e.code === 'Space') {
-                if(e.target.tagName !== 'BUTTON') {
-                    e.preventDefault();
-                    togglePlay();
-                }
-            }
-        });
 
         function endPlayheadDrag(e) {
             if (!isDraggingPlayhead) return;
