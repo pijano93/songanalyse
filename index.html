@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Struktur Analyse</title>
     
+    <!-- PWA Meta Tags für iOS & Android -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,7 +35,7 @@
             padding: 20px;
         }
 
-        /* Haupt-Header */
+        /* Haupt-Header: Hält alle Blöcke auf exakt 146px Höhe */
         .header {
             display: flex;
             justify-content: flex-start;
@@ -78,17 +79,20 @@
             height: 146px; 
         }
 
+        /* Spaltenbreite */
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(3, 150px);
+            grid-template-columns: repeat(3, 155px);
             grid-template-rows: repeat(2, 50px);
             gap: 10px;
         }
 
         button, .upload-btn {
+            -webkit-appearance: none;
+            appearance: none;
             width: 100%;
             height: 100%;
-            padding: 8px 12px;
+            padding: 8px 14px;
             cursor: pointer;
             background: var(--btn-blue);
             color: white;
@@ -98,8 +102,8 @@
             transition: background 0.2s, color 0.2s;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 6px;
+            justify-content: flex-start; 
+            gap: 10px; 
             font-size: 14px;
             margin: 0;
             white-space: nowrap;
@@ -120,6 +124,22 @@
             background: var(--btn-red-hover) !important;
         }
 
+        .btn-icon {
+            font-size: 20px; 
+            display: inline-block;
+            line-height: 1;
+        }
+
+        .btn-text-symbol {
+            font-size: 22px;
+            font-weight: bold;
+            color: white;
+            display: inline-block;
+            line-height: 1;
+            width: 20px;
+            text-align: center;
+        }
+
         /* BEREICH 2 & 3: Rechtes Kombi-Panel */
         .control-panel {
             display: flex;
@@ -131,7 +151,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-grow: 0; 
-            width: 355px; 
+            width: 370px; 
             height: 146px; 
         }
 
@@ -144,7 +164,7 @@
         }
 
         .btn-panel-sync {
-            width: 150px !important;
+            width: 155px !important;
             flex-shrink: 0;
         }
 
@@ -167,7 +187,6 @@
             color: #333 !important;
             border: 1px solid #ccc !important;
             padding: 4px 10px !important;
-            font-size: 18px !important;
             height: 100%;
             display: flex;
             align-items: center;
@@ -179,25 +198,27 @@
             background: #e2e2e2 !important;
         }
 
-        /* KORREKTUR: Graue iOS-Box entfernt, Dreieck vergrößert und zentriert */
         .btn-play-round {
-            -webkit-appearance: none; /* Entfernt Apple-Standard-Overlays */
+            -webkit-appearance: none;
             appearance: none;
             border-radius: 50% !important;
             width: 50px !important;
             height: 50px !important;
             flex-shrink: 0;
             padding: 0 !important;
-            font-size: 22px !important; /* Dreieck deutlich vergrößert */
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            line-height: 1 !important;
+            background: var(--btn-blue);
         }
 
-        /* Schiebt das Play-Zeichen im Kreis minimal nach rechts für optisch perfekte Zentrierung */
-        .btn-play-round:not(.active) {
-            padding-left: 3px !important;
+        .btn-play-round .btn-icon {
+            font-size: 24px; 
+            color: white;
+        }
+
+        .btn-play-round:not(.active) .btn-icon {
+            padding-left: 3px;
         }
 
         .clock {
@@ -500,31 +521,36 @@
             <img src="icon.png" alt="App Icon" onerror="this.parentNode.style.display='none'">
         </div>
 
+        <!-- BEREICH 1 -->
         <div class="toolbar">
             <div class="button-grid">
                 <label class="upload-btn upload-mp3">
                     <input type="file" id="audio-upload" accept="audio/mp3, audio/wav, audio/ogg">
-                    🎵 MP3 Laden
+                    <span class="btn-icon">🎵</span> MP3 Laden
                 </label>
-                <button onclick="splitSection()" title="Tastenkürzel: C">✂️ Teilen (C)</button>
-                <button onclick="undo()" title="Tastenkürzel: STRG+Z">↩️ Zurück</button>
+                <button onclick="splitSection()" title="Tastenkürzel: C"><span class="btn-icon">✂️</span> Teilen (C)</button>
+                <button onclick="undo()" title="Tastenkürzel: STRG+Z"><span class="btn-text-symbol">←</span> Rückgängig</button>
 
-                <button onclick="promptExportApp()">💾 Speichern</button>
-                <button id="merge-btn" onclick="toggleMergeMode()" title="Tastenkürzel: V">🔗 Verbinden (V)</button>
-                <button onclick="redo()" title="Tastenkürzel: STRG+Y">↪️ Vor</button>
+                <button onclick="promptExportApp()"><span class="btn-icon">💾</span> Speichern</button>
+                <button id="merge-btn" onclick="toggleMergeMode()" title="Tastenkürzel: V"><span class="btn-icon">🔗</span> Verbinden (V)</button>
+                <button onclick="redo()" title="Tastenkürzel: STRG+Y"><span class="btn-text-symbol">→</span> Wiederholen</button>
             </div>
         </div>
         
+        <!-- CONTROL PANEL -->
         <div class="control-panel">
+            <!-- Zeile 1: Tempo -->
             <div class="panel-row">
-                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T">🥁 Tap (T)</button>
+                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T"><span class="btn-icon">👆</span> Tap (T)</button>
                 <div class="bpm-display" id="bpm-val">-- BPM</div>
-                <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen">🔄</button>
+                <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen"><span class="btn-icon">🔄</span></button>
             </div>
             
+            <!-- Zeile 2: Player -->
             <div class="panel-row">
-                <button id="loop-btn" class="btn-panel-sync" onclick="toggleLoop()">🔁 Loop: AUS</button>
-                <button id="play-pause-btn" class="btn-play-round" onclick="togglePlay()">▶</button>
+                <!-- KORREKTUR: "♾️" als neues, kontrastreiches Loop-Symbol eingebaut -->
+                <button id="loop-btn" class="btn-panel-sync" onclick="toggleLoop()"><span class="btn-icon">♾️</span> Loop: AUS</button>
+                <button id="play-pause-btn" class="btn-play-round" onclick="togglePlay()"><span class="btn-icon">▶</span></button>
                 <div class="clock" id="live-clock">00:00</div>
             </div>
         </div>
@@ -715,13 +741,14 @@
             }
         }
 
+        /* Script-Logik an das neue Unendlichkeits-Emoji angepasst */
         function toggleLoop() {
             isLoopActive = !isLoopActive;
             if (isLoopActive) {
-                loopBtn.innerText = "🔁 Loop: AN";
+                loopBtn.innerHTML = '<span class="btn-icon">♾️</span> Loop: AN';
                 loopBtn.classList.add('active');
             } else {
-                loopBtn.innerText = "🔁 Loop: AUS";
+                loopBtn.innerHTML = '<span class="btn-icon">♾️</span> Loop: AUS';
                 loopBtn.classList.remove('active');
             }
         }
@@ -750,11 +777,11 @@
             if (!audio.src) return;
             if (audio.paused) {
                 audio.play();
-                playBtn.innerText = '⏸';
-                playBtn.classList.add('active'); // Tauscht Kreis-Farbe im Play-Zustand bei Bedarf
+                playBtn.innerHTML = '<span class="btn-icon">⏸</span>';
+                playBtn.classList.add('active'); 
             } else {
                 audio.pause();
-                playBtn.innerText = '▶';
+                playBtn.innerHTML = '<span class="btn-icon">▶</span>';
                 playBtn.classList.remove('active');
             }
         }
@@ -763,7 +790,7 @@
             if (!audio.src) return;
             if (!audio.paused) {
                 audio.pause();
-                playBtn.innerText = '▶';
+                playBtn.innerHTML = '<span class="btn-icon">▶</span>';
                 playBtn.classList.remove('active');
             }
         }
@@ -777,7 +804,7 @@
         });
 
         audio.addEventListener('ended', () => {
-            playBtn.innerText = '▶';
+            playBtn.innerHTML = '<span class="btn-icon">▶</span>';
             playBtn.classList.remove('active');
         });
 
@@ -1007,6 +1034,31 @@
             ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
         }
 
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
+            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
+                splitSection();
+            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
+                e.preventDefault();
+                toggleMergeMode();
+            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
+                e.preventDefault();
+                tapTempo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                redo();
+            } else if (e.code === 'Space') {
+                if(e.target.tagName !== 'BUTTON') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            }
+        });
+
         function startDrag(e, index, isTouch) {
             e.stopPropagation();
             if (isMergeMode) {
@@ -1174,4 +1226,69 @@
         });
 
         function saveState(initial = false) {
-            if (!
+            if (!initial) {
+                historyStack = historyStack.slice(0, historyIndex + 1);
+            }
+            historyStack.push(JSON.parse(JSON.stringify(markers)));
+            historyIndex++;
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                markers = JSON.parse(JSON.stringify(historyStack[historyIndex]));
+                drawTimeline();
+            }
+        }
+
+        function redo() {
+            if (historyIndex < historyStack.length - 1) {
+                historyIndex++;
+                markers = JSON.parse(JSON.stringify(historyStack[historyIndex]));
+                drawTimeline();
+            }
+        }
+        
+        function promptExportApp() {
+            const fileName = prompt("Bitte gib einen Dateinamen für deine Analyse ein:", "Song_Analyse_Projekt.html");
+            if (fileName !== null) {
+                let finalName = fileName.trim();
+                if (!finalName.toLowerCase().endsWith('.html')) {
+                    finalName += '.html';
+                }
+                exportApp(finalName);
+            }
+        }
+
+        function exportApp(fileName) {
+            const saveDataElem = document.getElementById('save-data');
+            if (!saveDataElem.getAttribute('data-audio')) {
+                alert("Bitte lade zuerst eine MP3-Datei!");
+                return;
+            }
+
+            saveDataElem.setAttribute('data-markers', JSON.stringify(markers));
+            const docClone = document.documentElement.cloneNode(true);
+            docClone.querySelector('#context-menu').style.display = 'none';
+            
+            const htmlContent = "<!DOCTYPE html>\n" + docClone.outerHTML;
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            
+            if (isIOS && navigator.share) {
+                const file = new File([htmlContent], fileName, { type: 'text/html' });
+                navigator.share({ files: [file], title: 'Song Analyse Export' }).catch(err => console.log(err));
+            } else {
+                const blob = new Blob([htmlContent], {type: "text/html;charset=utf-8"});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+    </script>
+</body>
+</html>
