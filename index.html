@@ -34,7 +34,7 @@
             padding: 20px;
         }
 
-        /* Haupt-Header: Hält alle 3 Blöcke auf exakt 146px Höhe */
+        /* Haupt-Header */
         .header {
             display: flex;
             justify-content: flex-start;
@@ -78,7 +78,6 @@
             height: 146px; 
         }
 
-        /* KORREKTUR: Spaltenbreite strikt auf 150px erhöht */
         .button-grid {
             display: grid;
             grid-template-columns: repeat(3, 150px);
@@ -132,7 +131,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-grow: 0; 
-            width: 355px; /* KORREKTUR: Auf 355px verbreitert für mathematisch exakte Symmetrie */
+            width: 355px; 
             height: 146px; 
         }
 
@@ -144,7 +143,6 @@
             height: 50px;
         }
 
-        /* KORREKTUR: Rechte Panel-Buttons wachsen synchron auf 150px mit */
         .btn-panel-sync {
             width: 150px !important;
             flex-shrink: 0;
@@ -181,12 +179,25 @@
             background: #e2e2e2 !important;
         }
 
+        /* KORREKTUR: Graue iOS-Box entfernt, Dreieck vergrößert und zentriert */
         .btn-play-round {
+            -webkit-appearance: none; /* Entfernt Apple-Standard-Overlays */
+            appearance: none;
             border-radius: 50% !important;
             width: 50px !important;
             height: 50px !important;
             flex-shrink: 0;
             padding: 0 !important;
+            font-size: 22px !important; /* Dreieck deutlich vergrößert */
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+        }
+
+        /* Schiebt das Play-Zeichen im Kreis minimal nach rechts für optisch perfekte Zentrierung */
+        .btn-play-round:not(.active) {
+            padding-left: 3px !important;
         }
 
         .clock {
@@ -740,9 +751,11 @@
             if (audio.paused) {
                 audio.play();
                 playBtn.innerText = '⏸';
+                playBtn.classList.add('active'); // Tauscht Kreis-Farbe im Play-Zustand bei Bedarf
             } else {
                 audio.pause();
                 playBtn.innerText = '▶';
+                playBtn.classList.remove('active');
             }
         }
 
@@ -751,6 +764,7 @@
             if (!audio.paused) {
                 audio.pause();
                 playBtn.innerText = '▶';
+                playBtn.classList.remove('active');
             }
         }
 
@@ -764,6 +778,7 @@
 
         audio.addEventListener('ended', () => {
             playBtn.innerText = '▶';
+            playBtn.classList.remove('active');
         });
 
         function formatTime(sec) {
@@ -992,27 +1007,6 @@
             ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
         }
 
-        function tapTempo(e) {
-            if(e) e.preventDefault();
-            const now = new Date().getTime();
-            if (tapTimes.length > 0 && (now - tapTimes[tapTimes.length - 1]) > 2000) {
-                tapTimes = [];
-            }
-            tapTimes.push(now);
-
-            if (tapTimes.length > 1) {
-                let intervals = [];
-                for (let i = 1; i < tapTimes.length; i++) {
-                    intervals.push(tapTimes[i] - tapTimes[i - 1]);
-                }
-                const avgInterval = intervals.reduce((sum, val) => sum + val, 0) / intervals.length;
-                const bpm = Math.round(60000 / avgInterval);
-                document.getElementById('bpm-val').innerText = bpm + " BPM";
-            } else {
-                document.getElementById('bpm-val').innerText = "Tappen...";
-            }
-        }
-
         function startDrag(e, index, isTouch) {
             e.stopPropagation();
             if (isMergeMode) {
@@ -1115,31 +1109,6 @@
             clock.innerText = formatTime(targetTime);
         }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-
-            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
-                splitSection();
-            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
-                e.preventDefault();
-                toggleMergeMode();
-            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
-                e.preventDefault();
-                tapTempo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                undo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
-                e.preventDefault();
-                redo();
-            } else if (e.code === 'Space') {
-                if(e.target.tagName !== 'BUTTON') {
-                    e.preventDefault();
-                    togglePlay();
-                }
-            }
-        });
-
         function endPlayheadDrag(e) {
             if (!isDraggingPlayhead) return;
             isDraggingPlayhead = false;
@@ -1205,69 +1174,4 @@
         });
 
         function saveState(initial = false) {
-            if (!initial) {
-                historyStack = historyStack.slice(0, historyIndex + 1);
-            }
-            historyStack.push(JSON.parse(JSON.stringify(markers)));
-            historyIndex++;
-        }
-
-        function undo() {
-            if (historyIndex > 0) {
-                historyIndex--;
-                markers = JSON.parse(JSON.stringify(historyStack[historyIndex]));
-                drawTimeline();
-            }
-        }
-
-        function redo() {
-            if (historyIndex < historyStack.length - 1) {
-                historyIndex++;
-                markers = JSON.parse(JSON.stringify(historyStack[historyIndex]));
-                drawTimeline();
-            }
-        }
-        
-        function promptExportApp() {
-            const fileName = prompt("Bitte gib einen Dateinamen für deine Analyse ein:", "Song_Analyse_Projekt.html");
-            if (fileName !== null) {
-                let finalName = fileName.trim();
-                if (!finalName.toLowerCase().endsWith('.html')) {
-                    finalName += '.html';
-                }
-                exportApp(finalName);
-            }
-        }
-
-        function exportApp(fileName) {
-            const saveDataElem = document.getElementById('save-data');
-            if (!saveDataElem.getAttribute('data-audio')) {
-                alert("Bitte lade zuerst eine MP3-Datei!");
-                return;
-            }
-
-            saveDataElem.setAttribute('data-markers', JSON.stringify(markers));
-            const docClone = document.documentElement.cloneNode(true);
-            docClone.querySelector('#context-menu').style.display = 'none';
-            
-            const htmlContent = "<!DOCTYPE html>\n" + docClone.outerHTML;
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-            
-            if (isIOS && navigator.share) {
-                const file = new File([htmlContent], fileName, { type: 'text/html' });
-                navigator.share({ files: [file], title: 'Song Analyse Export' }).catch(err => console.log(err));
-            } else {
-                const blob = new Blob([htmlContent], {type: "text/html;charset=utf-8"});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-        }
-    </script>
-</body>
-</html>
+            if (!
