@@ -85,7 +85,7 @@
             gap: 10px;
         }
 
-        /* WUNSCH: Buttons und Labels jetzt strikt linksbündig ausgerichtet */
+        /* ÄNDERUNG: Alle Buttons sind nun grau wie das BPM-Feld */
         button, .upload-btn {
             -webkit-appearance: none;
             appearance: none;
@@ -93,16 +93,16 @@
             height: 100%;
             padding: 8px 14px;
             cursor: pointer;
-            background: var(--btn-blue);
-            color: white;
-            border: none;
+            background: #eee; /* BPM-Grau */
+            color: var(--text-color); /* Dunkle Schrift für den Kontrast */
+            border: 1px solid #ccc; /* Rahmen wie beim BPM-Feld */
             border-radius: 4px;
             font-weight: 600;
             transition: background 0.2s, color 0.2s;
             display: flex;
             align-items: center;
-            justify-content: flex-start; /* ÄNDERUNG: Linksbündig */
-            gap: 10px; /* Abstand zwischen Icon und Text */
+            justify-content: flex-start; 
+            gap: 10px; 
             font-size: 14px;
             margin: 0;
             white-space: nowrap;
@@ -113,21 +113,29 @@
         }
 
         button:hover, .upload-btn:hover {
-            background: var(--btn-blue-hover);
+            background: #e2e2e2; /* Etwas dunkleres Grau beim Hovern */
         }
 
         button.active {
             background: var(--btn-red) !important;
-        }
-        button.active:hover {
-            background: var(--btn-red-hover) !important;
+            color: white !important;
+            border-color: var(--btn-red-hover) !important;
         }
 
-        /* WUNSCH: Emojis/Icons innerhalb der Buttons deutlich vergrößern */
         .btn-icon {
-            font-size: 20px; /* Größeres Icon */
+            font-size: 20px; 
             display: inline-block;
             line-height: 1;
+        }
+
+        .btn-text-symbol {
+            font-size: 22px;
+            font-weight: bold;
+            color: inherit; /* Passt sich automatisch an (Dunkelgrau normal, Weiß wenn aktiv) */
+            display: inline-block;
+            line-height: 1;
+            width: 20px;
+            text-align: center;
         }
 
         /* BEREICH 2 & 3: Rechtes Kombi-Panel */
@@ -188,7 +196,6 @@
             background: #e2e2e2 !important;
         }
 
-        /* KORREKTUR: Runde Play-Taste erzwingt nun ein reines span-basiertes Dreieck ohne grauen iOS-Kasten */
         .btn-play-round {
             -webkit-appearance: none;
             appearance: none;
@@ -200,15 +207,15 @@
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            background: var(--btn-blue);
+            background: #eee; /* Auch die Playtaste ist nun grau */
+            border: 1px solid #ccc;
         }
 
         .btn-play-round .btn-icon {
-            font-size: 24px; /* Dreieck noch ein Stück vergrößert */
-            color: white;
+            font-size: 24px; 
+            color: inherit; /* Das Play-Dreieck ist nun dunkel */
         }
 
-        /* Minimaler optischer Ausgleich nach rechts fürs Dreieck, damit es im Kreis perfekt zentriert wirkt */
         .btn-play-round:not(.active) .btn-icon {
             padding-left: 3px;
         }
@@ -520,17 +527,17 @@
                     <span class="btn-icon">🎵</span> MP3 Laden
                 </label>
                 <button onclick="splitSection()" title="Tastenkürzel: C"><span class="btn-icon">✂️</span> Teilen (C)</button>
-                <button onclick="undo()" title="Tastenkürzel: STRG+Z"><span class="btn-icon">↩️</span> Zurück</button>
+                <button onclick="undo()" title="Tastenkürzel: STRG+Z"><span class="btn-text-symbol">←</span> Rückgängig</button>
 
                 <button onclick="promptExportApp()"><span class="btn-icon">💾</span> Speichern</button>
                 <button id="merge-btn" onclick="toggleMergeMode()" title="Tastenkürzel: V"><span class="btn-icon">🔗</span> Verbinden (V)</button>
-                <button onclick="redo()" title="Tastenkürzel: STRG+Y"><span class="btn-icon">↪️</span> Vor</button>
+                <button onclick="redo()" title="Tastenkürzel: STRG+Y"><span class="btn-text-symbol">→</span> Wiederholen</button>
             </div>
         </div>
         
         <div class="control-panel">
             <div class="panel-row">
-                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T"><span class="btn-icon">🥁</span> Tap (T)</button>
+                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T"><span class="btn-icon">👆</span> Tap (T)</button>
                 <div class="bpm-display" id="bpm-val">-- BPM</div>
                 <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen"><span class="btn-icon">🔄</span></button>
             </div>
@@ -1079,6 +1086,31 @@
             moveHandleVisual(calculateNewTime(e.clientX));
         }
 
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
+            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
+                splitSection();
+            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
+                e.preventDefault();
+                toggleMergeMode();
+            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
+                e.preventDefault();
+                tapTempo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undo();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                redo();
+            } else if (e.code === 'Space') {
+                if(e.target.tagName !== 'BUTTON') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+            }
+        });
+
         function processTouchDrag(e) {
             if (!isDragging) return;
             e.preventDefault();
@@ -1142,31 +1174,6 @@
             playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
             clock.innerText = formatTime(targetTime);
         }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-
-            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
-                splitSection();
-            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
-                e.preventDefault();
-                toggleMergeMode();
-            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
-                e.preventDefault();
-                tapTempo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                undo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
-                e.preventDefault();
-                redo();
-            } else if (e.code === 'Space') {
-                if(e.target.tagName !== 'BUTTON') {
-                    e.preventDefault();
-                    togglePlay();
-                }
-            }
-        });
 
         function endPlayheadDrag(e) {
             if (!isDraggingPlayhead) return;
