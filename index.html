@@ -70,18 +70,13 @@
             padding: 0 15px; 
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex-grow: 0; 
+            flex-shrink: 0; 
             height: 146px; 
         }
 
-        /* KORREKTUR des Grid-Layouts:
-           Spalte 1 (MP3 Laden / Speichern): 155px
-           Spalte 2 (Teilen / Verbinden): von 155px um 20px erhöht auf 175px
-           Spalte 3 (Rückgängig / Wiederholen): 155px
-        */
         .button-grid {
             display: grid;
-            grid-template-columns: 155px 175px 155px;
+            grid-template-columns: repeat(3, max-content);
             grid-template-rows: repeat(2, 50px);
             gap: 10px;
         }
@@ -91,7 +86,7 @@
             appearance: none;
             width: 100%;
             height: 100%;
-            padding: 8px 14px;
+            padding: 8px 16px;
             cursor: pointer;
             background: #eee;
             color: var(--text-color);
@@ -119,14 +114,14 @@
         button.active {
             background: #eee !important;
             border: 3px solid var(--btn-active-green) !important;
-            padding: 6px 12px !important;
+            padding: 6px 14px !important;
         }
 
         button.active-red {
             background: var(--btn-red) !important;
             color: white !important;
             border: 1px solid var(--btn-red-hover) !important;
-            padding: 8px 14px !important;
+            padding: 8px 16px !important;
         }
 
         .btn-icon {
@@ -145,10 +140,6 @@
             text-align: center;
         }
 
-        /* KORREKTUR des Control Panels:
-           Die Gesamtbreite wird synchron um 20px erhöht (von 370px auf 390px),
-           damit die Boxen im Header perfekt bündig abschließen.
-        */
         .control-panel {
             display: flex;
             flex-direction: column;
@@ -158,8 +149,8 @@
             padding: 0 15px; 
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex-grow: 0; 
-            width: 390px; 
+            flex-shrink: 0; 
+            width: 370px; 
             height: 146px; 
         }
 
@@ -171,9 +162,8 @@
             height: 50px;
         }
 
-        /* Der linke Synchron-Button im Control Panel wächst ebenfalls auf 175px mit */
         .btn-panel-sync {
-            width: 175px !important;
+            width: 155px !important;
             flex-shrink: 0;
         }
 
@@ -895,10 +885,10 @@
         function toggleMergeMode() {
             isMergeMode = !isMergeMode;
             if (isMergeMode) {
-                mergeBtn.classList.add('active');
+                mergeBtn.classList.add('active-red');
                 container.classList.add('merge-mode');
             } else {
-                mergeBtn.classList.remove('active');
+                mergeBtn.classList.remove('active-red');
                 container.classList.remove('merge-mode');
             }
         }
@@ -1040,6 +1030,32 @@
                 tableContainer.appendChild(cell);
 
                 setTimeout(() => { autoGrowTextarea(textarea); }, 10);
+            }
+        }
+
+        function drawDefaultWaveform() {
+            ctx.fillStyle = '#adb5bd';
+            ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
+        }
+
+        function tapTempo(e) {
+            if(e) e.preventDefault();
+            const now = new Date().getTime();
+            if (tapTimes.length > 0 && (now - tapTimes[tapTimes.length - 1]) > 2000) {
+                tapTimes = [];
+            }
+            tapTimes.push(now);
+
+            if (tapTimes.length > 1) {
+                let intervals = [];
+                for (let i = 1; i < tapTimes.length; i++) {
+                    intervals.push(tapTimes[i] - tapTimes[i - 1]);
+                }
+                const avgInterval = intervals.reduce((sum, val) => sum + val, 0) / intervals.length;
+                const bpm = Math.round(60000 / avgInterval);
+                document.getElementById('bpm-val').innerText = bpm + " BPM";
+            } else {
+                document.getElementById('bpm-val').innerText = "Tappen...";
             }
         }
 
