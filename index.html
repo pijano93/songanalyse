@@ -34,7 +34,6 @@
             padding: 20px;
         }
 
-        /* Haupt-Header */
         .header {
             display: flex;
             justify-content: flex-start;
@@ -44,7 +43,6 @@
             flex-wrap: wrap;
         }
 
-        /* Programmsymbol links außen */
         .app-icon-container {
             display: flex;
             align-items: center;
@@ -65,7 +63,6 @@
             border-radius: 6px;
         }
 
-        /* BEREICH 1: Hauptmenü */
         .toolbar {
             display: flex;
             flex-direction: column;
@@ -80,12 +77,11 @@
 
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(3, 150px);
+            grid-template-columns: repeat(3, 155px);
             grid-template-rows: repeat(2, 50px);
             gap: 10px;
         }
 
-        /* ÄNDERUNG: Alle Buttons sind nun grau wie das BPM-Feld */
         button, .upload-btn {
             -webkit-appearance: none;
             appearance: none;
@@ -93,9 +89,9 @@
             height: 100%;
             padding: 8px 14px;
             cursor: pointer;
-            background: #eee; /* BPM-Grau */
-            color: var(--text-color); /* Dunkle Schrift für den Kontrast */
-            border: 1px solid #ccc; /* Rahmen wie beim BPM-Feld */
+            background: #eee; 
+            color: var(--text-color); 
+            border: 1px solid #ccc; 
             border-radius: 4px;
             font-weight: 600;
             transition: background 0.2s, color 0.2s;
@@ -113,7 +109,7 @@
         }
 
         button:hover, .upload-btn:hover {
-            background: #e2e2e2; /* Etwas dunkleres Grau beim Hovern */
+            background: #e2e2e2; 
         }
 
         button.active {
@@ -131,14 +127,13 @@
         .btn-text-symbol {
             font-size: 22px;
             font-weight: bold;
-            color: inherit; /* Passt sich automatisch an (Dunkelgrau normal, Weiß wenn aktiv) */
+            color: inherit; 
             display: inline-block;
             line-height: 1;
             width: 20px;
             text-align: center;
         }
 
-        /* BEREICH 2 & 3: Rechtes Kombi-Panel */
         .control-panel {
             display: flex;
             flex-direction: column;
@@ -149,7 +144,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-grow: 0; 
-            width: 355px; 
+            width: 370px; 
             height: 146px; 
         }
 
@@ -162,7 +157,7 @@
         }
 
         .btn-panel-sync {
-            width: 150px !important;
+            width: 155px !important;
             flex-shrink: 0;
         }
 
@@ -192,9 +187,6 @@
             width: 50px; 
             flex-shrink: 0;
         }
-        .btn-reset-bpm:hover {
-            background: #e2e2e2 !important;
-        }
 
         .btn-play-round {
             -webkit-appearance: none;
@@ -207,17 +199,8 @@
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            background: #eee; /* Auch die Playtaste ist nun grau */
+            background: #eee; 
             border: 1px solid #ccc;
-        }
-
-        .btn-play-round .btn-icon {
-            font-size: 24px; 
-            color: inherit; /* Das Play-Dreieck ist nun dunkel */
-        }
-
-        .btn-play-round:not(.active) .btn-icon {
-            padding-left: 3px;
         }
 
         .clock {
@@ -252,7 +235,6 @@
             background: #e9ecef;
             border: 1px solid #adb5bd;
             border-radius: 4px;
-            overflow: visible;
         }
 
         #waveform-container {
@@ -264,7 +246,6 @@
             border-radius: 4px;
             margin-top: 10px;
             cursor: pointer;
-            overflow: visible;
         }
 
         #waveform-canvas {
@@ -289,14 +270,9 @@
             border-radius: 2px;
             box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
             min-width: 0;
-            touch-action: manipulation;
             cursor: pointer;
         }
 
-        .segment:hover {
-            filter: brightness(1.1);
-        }
-        
         .segment-label {
             width: 100%;
             padding: 0 10px;
@@ -316,7 +292,6 @@
             border-radius: 4px;
             background: #f8f9fa;
             overflow: hidden;
-            align-items: stretch;
         }
 
         .table-segment-cell {
@@ -325,9 +300,6 @@
             border-right: 1px solid #adb5bd;
             min-width: 0;
             background: #fff;
-        }
-        .table-segment-cell:last-child {
-            border-right: none;
         }
 
         .table-segment-header {
@@ -340,16 +312,11 @@
         .table-segment-title {
             font-size: 13px;
             font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .table-segment-range {
             font-size: 11px;
-            font-weight: normal;
             color: #666;
-            margin-top: 3px;
             font-family: monospace;
         }
 
@@ -359,15 +326,8 @@
             border: none;
             padding: 8px;
             font-size: 13px;
-            overflow-y: hidden;
             resize: none;
             background: transparent;
-            font-family: inherit;
-            display: block;
-        }
-        .table-segment-cell textarea:focus {
-            outline: 2px solid var(--btn-blue);
-            background: #fff;
         }
 
         .playhead {
@@ -378,7 +338,6 @@
             background: #dc3545;
             z-index: 30;
             cursor: ew-resize;
-            touch-action: none;
         }
 
         .playhead::before {
@@ -391,16 +350,6 @@
             border-top: 10px solid #dc3545;
         }
 
-        .playhead::after {
-            content: '';
-            position: absolute;
-            top: -5px;
-            left: -15px;
-            width: 34px;
-            height: 25px;
-            background: transparent;
-        }
-
         .handle {
             position: absolute;
             right: -12px;
@@ -409,35 +358,10 @@
             width: 24px; 
             cursor: ew-resize;
             z-index: 40;
-            background: transparent;
-            touch-action: none;
-        }
-        
-        .handle::after {
-            content: '';
-            position: absolute;
-            left: 11px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: transparent;
-            transition: background 0.1s;
-        }
-
-        .handle:hover::after {
-            background: rgba(255, 255, 255, 0.6);
         }
 
         .merge-mode .handle {
             cursor: pointer;
-        }
-        .merge-mode .handle::after {
-            background: rgba(220, 53, 69, 0.4);
-            width: 6px;
-            left: 9px;
-        }
-        .merge-mode .handle:hover::after {
-            background: rgba(220, 53, 69, 0.9);
         }
 
         #context-menu {
@@ -450,7 +374,6 @@
             z-index: 100;
             list-style: none;
             padding: 5px 0;
-            margin: 0;
             min-width: 160px;
         }
 
@@ -460,11 +383,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-weight: 500;
-        }
-
-        #context-menu li:hover {
-            background: #f0f0f0;
         }
 
         .color-box {
@@ -474,27 +392,6 @@
             border: 1px solid #aaa;
         }
 
-        .menu-divider {
-            height: 1px;
-            background: #eee;
-            margin: 5px 0;
-            padding: 0 !important;
-            cursor: default !important;
-        }
-
-        @media (max-width: 1100px) {
-            .header {
-                justify-content: flex-start;
-            }
-            #waveform-container {
-                height: 60px;
-            }
-            .playhead {
-                height: 140px;
-            }
-        }
-
-        /* Farben */
         .color-intro { background: #4682B4; }    
         .color-verse { background: #E1C03F; }    
         .color-prechorus { background: #F0943A; } 
@@ -506,9 +403,7 @@
         .color-outro { background: #4682B4; }    
         .color-custom { background: #555555; } 
 
-        input[type="file"] {
-            display: none;
-        }
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
@@ -522,24 +417,24 @@
 
         <div class="toolbar">
             <div class="button-grid">
-                <label class="upload-btn upload-mp3">
+                <label class="upload-btn">
                     <input type="file" id="audio-upload" accept="audio/mp3, audio/wav, audio/ogg">
                     <span class="btn-icon">🎵</span> MP3 Laden
                 </label>
-                <button onclick="splitSection()" title="Tastenkürzel: C"><span class="btn-icon">✂️</span> Teilen (C)</button>
-                <button onclick="undo()" title="Tastenkürzel: STRG+Z"><span class="btn-text-symbol">←</span> Rückgängig</button>
+                <button onclick="splitSection()"><span class="btn-icon">✂️</span> Teilen (C)</button>
+                <button onclick="undo()"><span class="btn-text-symbol">←</span> Zurück</button>
 
                 <button onclick="promptExportApp()"><span class="btn-icon">💾</span> Speichern</button>
-                <button id="merge-btn" onclick="toggleMergeMode()" title="Tastenkürzel: V"><span class="btn-icon">🔗</span> Verbinden (V)</button>
-                <button onclick="redo()" title="Tastenkürzel: STRG+Y"><span class="btn-text-symbol">→</span> Wiederholen</button>
+                <button id="merge-btn" onclick="toggleMergeMode()"><span class="btn-icon">🔗</span> Verbinden (V)</button>
+                <button onclick="redo()"><span class="btn-text-symbol">→</span> Vor</button>
             </div>
         </div>
         
         <div class="control-panel">
             <div class="panel-row">
-                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T"><span class="btn-icon">👆</span> Tap (T)</button>
+                <button class="btn-panel-sync" onclick="tapTempo(event)"><span class="btn-icon">👆</span> Tap (T)</button>
                 <div class="bpm-display" id="bpm-val">-- BPM</div>
-                <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen"><span class="btn-icon">🔄</span></button>
+                <button class="btn-reset-bpm" onclick="resetTapper()"><span class="btn-icon">🔄</span></button>
             </div>
             
             <div class="panel-row">
@@ -554,11 +449,9 @@
         <div id="timeline-container">
             <div class="playhead" id="playhead"></div>
         </div>
-        
         <div id="waveform-container">
             <canvas id="waveform-canvas"></canvas>
         </div>
-        
         <div id="table-timeline-container"></div>
     </div>
 
@@ -574,7 +467,6 @@
         <li onclick="setSegmentType('Solo')"><div class="color-box color-solo"></div> Solo</li>
         <li onclick="setSegmentType('Break')"><div class="color-box color-break"></div> Break</li>
         <li onclick="setSegmentType('Outro')"><div class="color-box color-outro"></div> Outro</li>
-        <li class="menu-divider"></li>
         <li onclick="setCustomSegmentType()"><div class="color-box color-custom"></div> Eigener Text...</li>
     </ul>
 
@@ -597,13 +489,11 @@
         let historyIndex = -1;
         let isMergeMode = false;
         let isLoopActive = false;
-        
         let isDragging = false;
         let isDraggingPlayhead = false;
         let dragMarkerIndex = -1;
         let activeSegmentIndex = -1;
         let dragHandleElement = null;
-
         let tapTimes = [];
 
         const colors = {
@@ -611,35 +501,16 @@
             'Chorus': '#449E48', 'Interlude': '#87CEEB', 'Bridge': '#C72424',
             'Solo': '#222222', 'Break': '#808080', 'Outro': '#4682B4'
         };
-        const defaultCustomColor = '#555555';
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-            .then(() => console.log("PWA Service Worker aktiv!"))
-            .catch(err => console.log("Service Worker Fehler", err));
-        }
 
         window.onload = function() {
             const saveData = document.getElementById('save-data');
             const audioSrc = saveData.getAttribute('data-audio');
             const markerData = saveData.getAttribute('data-markers');
-
-            if (markerData) {
-                markers = JSON.parse(markerData);
-                markers.forEach(m => { if(m.notes === undefined) m.notes = ""; });
-            }
+            if (markerData) markers = JSON.parse(markerData);
             saveState(true);
-
-            if (audioSrc) {
-                clock.innerText = "LÄDT...";
-                initAudio(audioSrc);
-            }
-            
+            if (audioSrc) initAudio(audioSrc);
             playhead.addEventListener('mousedown', (e) => startPlayheadDrag(e, false));
-            playhead.addEventListener('touchstart', (e) => startPlayheadDrag(e, true), {passive: false});
-            
             resizeCanvas();
-            window.addEventListener('resize', () => { resizeCanvas(); drawWaveform(); });
         };
 
         function resizeCanvas() {
@@ -650,15 +521,11 @@
         document.getElementById('audio-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
-            clock.innerText = "LÄDT...";
             const reader = new FileReader();
             reader.onload = function(evt) {
                 const b64 = evt.target.result;
                 document.getElementById('save-data').setAttribute('data-audio', b64);
                 markers = [{"time": 0, "type": "Intro", "notes": ""}];
-                historyStack = [];
-                historyIndex = -1;
                 saveState(true);
                 initAudio(b64);
             };
@@ -667,541 +534,52 @@
 
         function initAudio(src) {
             audio.src = src;
-            audio.load();
-            audio.onloadedmetadata = () => {
-                generateWaveform();
-                drawTimeline();
-                updateClock();
-            };
+            audio.onloadedmetadata = () => { generateWaveform(); drawTimeline(); };
         }
 
         function generateWaveform() {
-            if (!window.AudioContext && !window.webkitAudioContext) {
-                drawDefaultWaveform();
-                return;
-            }
             const b64Data = document.getElementById('save-data').getAttribute('data-audio');
-            if (!b64Data) return;
-
-            fetch(b64Data)
-            .then(res => res.arrayBuffer())
-            .then(buffer => {
+            fetch(b64Data).then(res => res.arrayBuffer()).then(buffer => {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 return audioCtx.decodeAudioData(buffer);
-            })
-            .then(audioBuffer => {
+            }).then(audioBuffer => {
                 const rawData = audioBuffer.getChannelData(0);
                 const samples = 400;
                 const blockSize = Math.floor(rawData.length / samples);
                 const filteredData = [];
-                
                 for (let i = 0; i < samples; i++) {
-                    let blockStart = blockSize * i;
                     let sum = 0;
-                    for (let j = 0; j < blockSize; j++) {
-                        sum = sum + Math.abs(rawData[blockStart + j]);
-                    }
+                    for (let j = 0; j < blockSize; j++) sum += Math.abs(rawData[blockSize * i + j]);
                     filteredData.push(sum / blockSize);
                 }
-                
                 const multiplier = Math.max(...filteredData);
                 window.normalizedWaveformData = filteredData.map(n => n / multiplier);
                 drawWaveform();
-            })
-            .catch(err => {
-                console.error("Waveform-Fehler:", err);
-                drawDefaultWaveform();
             });
         }
 
         function drawWaveform() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (!window.normalizedWaveformData) {
-                drawDefaultWaveform();
-                return;
-            }
-
+            if (!window.normalizedWaveformData) return;
             const data = window.normalizedWaveformData;
-            const width = canvas.width;
-            const height = canvas.height;
-            const barWidth = width / data.length;
-
             ctx.fillStyle = '#007bff'; 
             for (let i = 0; i < data.length; i++) {
-                const barHeight = data[i] * height * 0.85;
-                const x = i * barWidth;
-                const y = (height - barHeight) / 2;
-                ctx.fillRect(x, y, barWidth - 1, barHeight);
+                const barHeight = data[i] * canvas.height * 0.85;
+                ctx.fillRect(i * (canvas.width / data.length), (canvas.height - barHeight) / 2, (canvas.width / data.length) - 1, barHeight);
             }
-        }
-
-        function toggleLoop() {
-            isLoopActive = !isLoopActive;
-            if (isLoopActive) {
-                loopBtn.innerHTML = '<span class="btn-icon">🔁</span> Loop: AN';
-                loopBtn.classList.add('active');
-            } else {
-                loopBtn.innerHTML = '<span class="btn-icon">🔁</span> Loop: AUS';
-                loopBtn.classList.remove('active');
-            }
-        }
-
-        function checkLoopBounds() {
-            if (!isLoopActive || !audio.duration || isDraggingPlayhead) return;
-            
-            const currTime = audio.currentTime;
-            let currentSegmentIdx = 0;
-            for (let i = markers.length - 1; i >= 0; i--) {
-                if (currTime >= markers[i].time) {
-                    currentSegmentIdx = i;
-                    break;
-                }
-            }
-
-            const start = markers[currentSegmentIdx].time;
-            const end = (currentSegmentIdx < markers.length - 1) ? markers[currentSegmentIdx + 1].time : audio.duration;
-
-            if (currTime >= end - 0.1) {
-                audio.currentTime = start;
-            }
-        }
-
-        function togglePlay() {
-            if (!audio.src) return;
-            if (audio.paused) {
-                audio.play();
-                playBtn.innerHTML = '<span class="btn-icon">⏸</span>';
-                playBtn.classList.add('active'); 
-            } else {
-                audio.pause();
-                playBtn.innerHTML = '<span class="btn-icon">▶</span>';
-                playBtn.classList.remove('active');
-            }
-        }
-
-        function pauseAudioOnly() {
-            if (!audio.src) return;
-            if (!audio.paused) {
-                audio.pause();
-                playBtn.innerHTML = '<span class="btn-icon">▶</span>';
-                playBtn.classList.remove('active');
-            }
-        }
-
-        audio.addEventListener('timeupdate', () => {
-            checkLoopBounds();
-            if (!isDragging && !isDraggingPlayhead) {
-                updateClock();
-                updatePlayhead();
-            }
-        });
-
-        audio.addEventListener('ended', () => {
-            playBtn.innerHTML = '<span class="btn-icon">▶</span>';
-            playBtn.classList.remove('active');
-        });
-
-        function formatTime(sec) {
-            if (isNaN(sec)) return "00:00";
-            let m = Math.floor(sec / 60);
-            let s = Math.floor(sec % 60);
-            return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
-        }
-
-        function updateClock() {
-            clock.innerText = formatTime(audio.currentTime);
-        }
-
-        function updatePlayhead() {
-            if (!audio.duration) return;
-            let pct = (audio.currentTime / audio.duration) * 100;
-            playhead.style.left = pct + '%';
-        }
-
-        function getTimeFromX(clientX) {
-            const rect = container.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const pct = Math.max(0, Math.min(1, x / rect.width));
-            return pct * audio.duration;
-        }
-
-        container.addEventListener('mousedown', function(e) {
-            if (!audio.duration) return;
-            if (e.target.classList.contains('handle') || e.target.classList.contains('playhead') || e.target.classList.contains('segment') || e.button !== 0) return;
-            audio.currentTime = getTimeFromX(e.clientX);
-            updatePlayhead(); updateClock();
-        });
-
-        container.addEventListener('touchstart', function(e) {
-            if (!audio.duration) return;
-            if (e.target.classList.contains('handle') || e.target.classList.contains('playhead') || e.target.classList.contains('segment')) return;
-            audio.currentTime = getTimeFromX(e.touches[0].clientX);
-            updatePlayhead(); updateClock();
-        }, {passive: true});
-
-        waveContainer.addEventListener('mousedown', function(e) {
-            if (!audio.duration || e.button !== 0 || isDraggingPlayhead) return;
-            audio.currentTime = getTimeFromX(e.clientX);
-            updatePlayhead(); updateClock();
-        });
-
-        waveContainer.addEventListener('touchstart', function(e) {
-            if (!audio.duration || isDraggingPlayhead) return;
-            audio.currentTime = getTimeFromX(e.touches[0].clientX);
-            updatePlayhead(); updateClock();
-        }, {passive: true});
-
-        function splitSection() {
-            if (!audio.duration || audio.currentTime === 0) return;
-            const t = audio.currentTime;
-            
-            if (markers.some(m => Math.abs(m.time - t) < 0.2)) return;
-
-            let segmentType = 'Intro';
-            for (let i = markers.length - 1; i >= 0; i--) {
-                if (t >= markers[i].time) {
-                    segmentType = markers[i].type;
-                    break;
-                }
-            }
-
-            markers.push({"time": t, "type": segmentType, "notes": ""});
-            markers.sort((a, b) => a.time - b.time);
-            saveState();
-            drawTimeline();
-        }
-
-        function toggleMergeMode() {
-            isMergeMode = !isMergeMode;
-            if (isMergeMode) {
-                mergeBtn.classList.add('active');
-                container.classList.add('merge-mode');
-            } else {
-                mergeBtn.classList.remove('active');
-                container.classList.remove('merge-mode');
-            }
-        }
-
-        function autoGrowTextarea(el) {
-            el.style.height = "auto";
-            el.style.height = el.scrollHeight + "px";
-        }
-
-        function drawTimeline() {
-            document.querySelectorAll('.segment').forEach(el => el.remove());
-            tableContainer.innerHTML = '';
-
-            if (!audio.duration) return;
-            const duration = audio.duration;
-
-            for (let i = 0; i < markers.length; i++) {
-                const start = markers[i].time;
-                const end = (i < markers.length - 1) ? markers[i+1].time : duration;
-                
-                const startPct = (start / duration) * 100;
-                const widthPct = ((end - start) / duration) * 100;
-
-                const seg = document.createElement('div');
-                seg.className = 'segment';
-                seg.style.left = startPct + '%';
-                seg.style.width = widthPct + '%';
-                seg.style.backgroundColor = colors[markers[i].type] || defaultCustomColor;
-                seg.setAttribute('data-index', i);
-                seg.setAttribute('title', markers[i].type + ' (' + formatTime(end - start) + ')');
-
-                const label = document.createElement('div');
-                label.className = 'segment-label';
-                label.innerText = markers[i].type;
-                seg.appendChild(label);
-
-                if (i < markers.length - 1) {
-                    const handle = document.createElement('div');
-                    handle.className = 'handle';
-                    handle.addEventListener('mousedown', (e) => startDrag(e, i + 1, false));
-                    handle.addEventListener('touchstart', (e) => startDrag(e, i + 1, true), {passive: false});
-                    seg.appendChild(handle);
-                }
-
-                seg.addEventListener('click', (e) => {
-                    if (isMergeMode || e.target.classList.contains('handle') || isDragging) return;
-                    audio.currentTime = start;
-                    updatePlayhead();
-                    updateClock();
-                });
-
-                let touchStartTime = 0;
-                seg.addEventListener('touchstart', (e) => { touchStartTime = new Date().getTime(); }, {passive: true});
-                seg.addEventListener('touchend', (e) => {
-                    const touchEndTime = new Date().getTime();
-                    if ((touchEndTime - touchStartTime) < 200) {
-                        if (isMergeMode || isDragging || e.target.classList.contains('handle')) return;
-                        setTimeout(() => {
-                            if (contextMenu.style.display !== 'block') {
-                                audio.currentTime = start;
-                                updatePlayhead(); updateClock();
-                            }
-                        }, 250);
-                    }
-                });
-
-                seg.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    activeSegmentIndex = i;
-                    contextMenu.style.display = 'block';
-                    contextMenu.style.left = e.pageX + 'px';
-                    contextMenu.style.top = e.pageY + 'px';
-                });
-
-                seg.addEventListener('dblclick', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    pauseAudioOnly();
-                    audio.currentTime = start;
-                    updatePlayhead(); updateClock();
-                    activeSegmentIndex = i;
-                    contextMenu.style.display = 'block';
-                    contextMenu.style.left = e.pageX + 'px';
-                    contextMenu.style.top = e.pageY + 'px';
-                });
-
-                let lastTap = 0;
-                seg.addEventListener('touchend', (e) => {
-                    const currentTime = new Date().getTime();
-                    const tapLength = currentTime - lastTap;
-                    if (tapLength < 400 && tapLength > 0) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        pauseAudioOnly();
-                        audio.currentTime = start;
-                        updatePlayhead(); updateClock();
-                        activeSegmentIndex = i;
-                        const touch = e.changedTouches[0];
-                        contextMenu.style.display = 'block';
-                        contextMenu.style.left = touch.pageX + 'px';
-                        contextMenu.style.top = touch.pageY + 'px';
-                    }
-                    lastTap = currentTime;
-                });
-
-                container.appendChild(seg);
-
-                const cell = document.createElement('div');
-                cell.className = 'table-segment-cell';
-                cell.style.width = widthPct + '%';
-
-                const cellHeader = document.createElement('div');
-                cellHeader.className = 'table-segment-header';
-                cellHeader.style.borderTop = `3px solid ${colors[markers[i].type] || defaultCustomColor}`;
-                
-                const cellTitle = document.createElement('div');
-                cellTitle.className = 'table-segment-title';
-                cellTitle.innerText = markers[i].type;
-
-                const cellRange = document.createElement('div');
-                cellRange.className = 'table-segment-range';
-                cellRange.innerText = `${formatTime(start)} - ${formatTime(end)}`;
-
-                cellHeader.appendChild(cellTitle);
-                cellHeader.appendChild(cellRange);
-
-                const textarea = document.createElement('textarea');
-                textarea.placeholder = "Anmerkungen...";
-                textarea.value = markers[i].notes || "";
-                
-                textarea.addEventListener('input', (e) => {
-                    markers[i].notes = e.target.value;
-                    document.getElementById('save-data').setAttribute('data-markers', JSON.stringify(markers));
-                    autoGrowTextarea(e.target);
-                });
-
-                cell.appendChild(cellHeader);
-                cell.appendChild(textarea);
-                tableContainer.appendChild(cell);
-
-                setTimeout(() => { autoGrowTextarea(textarea); }, 10);
-            }
-        }
-
-        function drawDefaultWaveform() {
-            ctx.fillStyle = '#adb5bd';
-            ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
         }
 
         function tapTempo(e) {
             if(e) e.preventDefault();
-            const now = new Date().getTime();
-            if (tapTimes.length > 0 && (now - tapTimes[tapTimes.length - 1]) > 2000) {
-                tapTimes = [];
-            }
+            const now = Date.now();
+            if (tapTimes.length > 0 && now - tapTimes[tapTimes.length - 1] > 2000) tapTimes = [];
             tapTimes.push(now);
-
             if (tapTimes.length > 1) {
-                let intervals = [];
-                for (let i = 1; i < tapTimes.length; i++) {
-                    intervals.push(tapTimes[i] - tapTimes[i - 1]);
-                }
-                const avgInterval = intervals.reduce((sum, val) => sum + val, 0) / intervals.length;
-                const bpm = Math.round(60000 / avgInterval);
-                document.getElementById('bpm-val').innerText = bpm + " BPM";
-            } else {
-                document.getElementById('bpm-val').innerText = "Tappen...";
+                const diffs = [];
+                for (let i = 1; i < tapTimes.length; i++) diffs.push(tapTimes[i] - tapTimes[i-1]);
+                const avg = diffs.reduce((a, b) => a + b) / diffs.length;
+                document.getElementById('bpm-val').innerText = Math.round(60000 / avg) + " BPM";
             }
-        }
-
-        function startDrag(e, index, isTouch) {
-            e.stopPropagation();
-            if (isMergeMode) {
-                if (isTouch) e.preventDefault();
-                markers.splice(index, 1);
-                saveState();
-                drawTimeline();
-                return;
-            }
-            if (!isTouch && e.button !== 0) return;
-            isDragging = true;
-            dragMarkerIndex = index;
-            dragHandleElement = e.target.parentNode;
-
-            if (isTouch) {
-                document.addEventListener('touchmove', processTouchDrag, {passive: false});
-                document.addEventListener('touchend', endDrag, {passive: false});
-            } else {
-                document.addEventListener('mousemove', processMouseDrag);
-                document.addEventListener('mouseup', endDrag);
-            }
-        }
-
-        function calculateNewTime(clientX) {
-            const rect = container.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const pct = Math.max(0, Math.min(1, x / rect.width));
-            let newTime = pct * audio.duration;
-            const prevTime = markers[dragMarkerIndex - 1].time;
-            const nextTime = dragMarkerIndex < markers.length - 1 ? markers[dragMarkerIndex + 1].time : audio.duration;
-            return Math.max(prevTime + 0.1, Math.min(nextTime - 0.1, newTime));
-        }
-
-        function processMouseDrag(e) {
-            if (!isDragging) return;
-            moveHandleVisual(calculateNewTime(e.clientX));
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-
-            if (e.key.toLowerCase() === 'c' && !e.ctrlKey) {
-                splitSection();
-            } else if (e.key.toLowerCase() === 'v' && !e.ctrlKey) {
-                e.preventDefault();
-                toggleMergeMode();
-            } else if (e.key.toLowerCase() === 't' && !e.ctrlKey) {
-                e.preventDefault();
-                tapTempo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                undo();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
-                e.preventDefault();
-                redo();
-            } else if (e.code === 'Space') {
-                if(e.target.tagName !== 'BUTTON') {
-                    e.preventDefault();
-                    togglePlay();
-                }
-            }
-        });
-
-        function processTouchDrag(e) {
-            if (!isDragging) return;
-            e.preventDefault();
-            moveHandleVisual(calculateNewTime(e.touches[0].clientX));
-        }
-
-        function moveHandleVisual(newTime) {
-            markers[dragMarkerIndex].time = newTime;
-            const duration = audio.duration;
-            const start = markers[dragMarkerIndex - 1].time;
-            const widthPct = ((newTime - start) / duration) * 100;
-            
-            dragHandleElement.style.width = widthPct + '%';
-            
-            const cells = tableContainer.children;
-            if(cells[dragMarkerIndex - 1]) cells[dragMarkerIndex - 1].style.width = widthPct + '%';
-
-            const nextSeg = dragHandleElement.nextSibling;
-            if (nextSeg && nextSeg.classList.contains('segment')) {
-                const nextEnd = (dragMarkerIndex < markers.length - 1) ? markers[dragMarkerIndex + 1].time : duration;
-                const nextWidthPct = ((nextEnd - newTime) / duration) * 100;
-                nextSeg.style.left = ((newTime / duration) * 100) + '%';
-                nextSeg.style.width = nextWidthPct + '%';
-                if(cells[dragMarkerIndex]) cells[dragMarkerIndex].style.width = nextWidthPct + '%';
-                
-                if(cells[dragMarkerIndex - 1]) {
-                    cells[dragMarkerIndex - 1].querySelector('.table-segment-title').innerText = markers[dragMarkerIndex - 1].type;
-                    cells[dragMarkerIndex - 1].querySelector('.table-segment-range').innerText = `${formatTime(start)} - ${formatTime(newTime)}`;
-                }
-                cells[dragMarkerIndex].querySelector('.table-segment-title').innerText = markers[dragMarkerIndex].type;
-                cells[dragMarkerIndex].querySelector('.table-segment-range').innerText = `${formatTime(newTime)} - ${formatTime(nextEnd)}`;
-            }
-        }
-
-        function startPlayheadDrag(e, isTouch) {
-            e.stopPropagation();
-            if (!audio.duration) return;
-            if (!isTouch && e.button !== 0) return;
-            isDraggingPlayhead = true;
-
-            if (isTouch) {
-                document.addEventListener('touchmove', processPlayheadTouchDrag, {passive: false});
-                document.addEventListener('touchend', endPlayheadDrag, {passive: false});
-            } else {
-                document.addEventListener('mousemove', processPlayheadMouseDrag);
-                document.addEventListener('mouseup', endPlayheadDrag);
-            }
-        }
-
-        function processPlayheadMouseDrag(e) {
-            if (!isDraggingPlayhead) return;
-            const targetTime = getTimeFromX(e.clientX);
-            playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
-            clock.innerText = formatTime(targetTime);
-        }
-
-        function processPlayheadTouchDrag(e) {
-            if (!isDraggingPlayhead) return;
-            e.preventDefault();
-            const targetTime = getTimeFromX(e.touches[0].clientX);
-            playhead.style.left = ((targetTime / audio.duration) * 100) + '%';
-            clock.innerText = formatTime(targetTime);
-        }
-
-        function endPlayheadDrag(e) {
-            if (!isDraggingPlayhead) return;
-            isDraggingPlayhead = false;
-            document.removeEventListener('mousemove', processPlayheadMouseDrag);
-            document.removeEventListener('mouseup', endPlayheadDrag);
-            document.removeEventListener('touchmove', processPlayheadTouchDrag);
-            document.removeEventListener('touchend', endPlayheadDrag);
-
-            let finalX = e.clientX;
-            if (e.changedTouches && e.changedTouches.length > 0) {
-                finalX = e.changedTouches[0].clientX;
-            }
-            const targetTime = getTimeFromX(finalX);
-            audio.currentTime = targetTime;
-            updatePlayhead();
-            updateClock();
-        }
-
-        function endDrag(e) {
-            if (!isDragging) return;
-            isDragging = false;
-            document.removeEventListener('mousemove', processMouseDrag);
-            document.removeEventListener('mouseup', endDrag);
-            document.removeEventListener('touchmove', processTouchDrag);
-            document.removeEventListener('touchend', endDrag);
-            saveState();
-            drawTimeline();
         }
 
         function resetTapper() {
@@ -1209,99 +587,130 @@
             document.getElementById('bpm-val').innerText = "-- BPM";
         }
 
-        function setSegmentType(type) {
-            if (activeSegmentIndex !== -1) {
-                markers[activeSegmentIndex].type = type;
-                saveState();
-                drawTimeline();
-            }
-            contextMenu.style.display = 'none';
+        function splitSection() {
+            const t = audio.currentTime;
+            if (markers.some(m => Math.abs(m.time - t) < 0.2)) return;
+            let type = 'Intro';
+            for (let i = markers.length - 1; i >= 0; i--) { if (t >= markers[i].time) { type = markers[i].type; break; } }
+            markers.push({"time": t, "type": type, "notes": ""});
+            markers.sort((a, b) => a.time - b.time);
+            saveState();
+            drawTimeline();
         }
 
-        function setCustomSegmentType() {
-            if (activeSegmentIndex !== -1) {
-                const currentType = markers[activeSegmentIndex].type;
-                const defaultPrompt = colors[currentType] ? "" : currentType;
-                const customText = prompt("Bitte gib eine eigene Bezeichnung für diesen Formteil ein:", defaultPrompt);
-                
-                if (customText !== null && customText.trim() !== "") {
-                    markers[activeSegmentIndex].type = customText.trim();
-                    saveState();
-                    drawTimeline();
-                }
-            }
-            contextMenu.style.display = 'none';
+        function togglePlay() {
+            if (audio.paused) { audio.play(); playBtn.innerHTML = '⏸'; }
+            else { audio.pause(); playBtn.innerHTML = '▶'; }
         }
 
-        document.addEventListener('click', (e) => {
-            if(e.target.closest('#context-menu') === null) {
-                contextMenu.style.display = 'none';
+        function toggleLoop() {
+            isLoopActive = !isLoopActive;
+            loopBtn.innerHTML = isLoopActive ? '🔁 Loop: AN' : '🔁 Loop: AUS';
+        }
+
+        audio.addEventListener('timeupdate', () => {
+            if (isLoopActive) {
+                let idx = 0;
+                for (let i = markers.length - 1; i >= 0; i--) { if (audio.currentTime >= markers[i].time) { idx = i; break; } }
+                const end = (idx < markers.length - 1) ? markers[idx + 1].time : audio.duration;
+                if (audio.currentTime >= end - 0.1) audio.currentTime = markers[idx].time;
+            }
+            if (!isDraggingPlayhead) {
+                playhead.style.left = (audio.currentTime / audio.duration * 100) + '%';
+                clock.innerText = formatTime(audio.currentTime);
             }
         });
 
-        function saveState(initial = false) {
-            if (!initial) {
-                historyStack = historyStack.slice(0, historyIndex + 1);
-            }
-            historyStack.push(JSON.parse(JSON.stringify(markers)));
-            historyIndex++;
+        function formatTime(sec) {
+            let m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+            return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
         }
 
-        function undo() {
-            if (historyIndex > 0) {
-                historyIndex--;
-                markers = JSON.parse(JSON.stringify(historyStack[historyIndex]));
-                drawTimeline();
-            }
-        }
-
-        function redo() {
-            if (historyIndex < historyStack.length - 1) {
-                historyIndex++;
-                markers = JSON.parse(JSON.stringify(historyStack[historyIndex]));
-                drawTimeline();
-            }
-        }
-        
-        function promptExportApp() {
-            const fileName = prompt("Bitte gib einen Dateinamen für deine Analyse ein:", "Song_Analyse_Projekt.html");
-            if (fileName !== null) {
-                let finalName = fileName.trim();
-                if (!finalName.toLowerCase().endsWith('.html')) {
-                    finalName += '.html';
+        function drawTimeline() {
+            document.querySelectorAll('.segment').forEach(el => el.remove());
+            tableContainer.innerHTML = '';
+            markers.forEach((m, i) => {
+                const start = m.time;
+                const end = (i < markers.length - 1) ? markers[i+1].time : audio.duration;
+                const seg = document.createElement('div');
+                seg.className = 'segment';
+                seg.style.left = (start / audio.duration * 100) + '%';
+                seg.style.width = ((end - start) / audio.duration * 100) + '%';
+                seg.style.backgroundColor = colors[m.type] || '#555';
+                seg.innerHTML = `<div class="segment-label">${m.type}</div>`;
+                if (i < markers.length - 1) {
+                    const h = document.createElement('div');
+                    h.className = 'handle';
+                    h.onmousedown = (e) => startDrag(e, i + 1);
+                    seg.appendChild(h);
                 }
-                exportApp(finalName);
-            }
+                seg.oncontextmenu = (e) => { e.preventDefault(); activeSegmentIndex = i; contextMenu.style.display='block'; contextMenu.style.left=e.pageX+'px'; contextMenu.style.top=e.pageY+'px'; };
+                container.appendChild(seg);
+
+                const cell = document.createElement('div');
+                cell.className = 'table-segment-cell';
+                cell.style.width = seg.style.width;
+                cell.innerHTML = `<div class="table-segment-header" style="border-top:3px solid ${seg.style.backgroundColor}"><div class="table-segment-title">${m.type}</div><div class="table-segment-range">${formatTime(start)} - ${formatTime(end)}</div></div><textarea placeholder="Anmerkungen...">${m.notes || ""}</textarea>`;
+                cell.querySelector('textarea').oninput = (e) => { markers[i].notes = e.target.value; };
+                tableContainer.appendChild(cell);
+            });
         }
 
-        function exportApp(fileName) {
-            const saveDataElem = document.getElementById('save-data');
-            if (!saveDataElem.getAttribute('data-audio')) {
-                alert("Bitte lade zuerst eine MP3-Datei!");
-                return;
-            }
+        function startDrag(e, idx) {
+            e.stopPropagation();
+            if (isMergeMode) { markers.splice(idx, 1); saveState(); drawTimeline(); return; }
+            isDragging = true; dragMarkerIndex = idx;
+            document.onmousemove = (ev) => {
+                const rect = container.getBoundingClientRect();
+                let t = ((ev.clientX - rect.left) / rect.width) * audio.duration;
+                markers[dragMarkerIndex].time = Math.max(markers[idx-1].time + 0.1, Math.min(t, (markers[idx+1] ? markers[idx+1].time : audio.duration) - 0.1));
+                drawTimeline();
+            };
+            document.onmouseup = () => { isDragging = false; document.onmousemove = null; saveState(); };
+        }
 
-            saveDataElem.setAttribute('data-markers', JSON.stringify(markers));
-            const docClone = document.documentElement.cloneNode(true);
-            docClone.querySelector('#context-menu').style.display = 'none';
-            
-            const htmlContent = "<!DOCTYPE html>\n" + docClone.outerHTML;
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-            
-            if (isIOS && navigator.share) {
-                const file = new File([htmlContent], fileName, { type: 'text/html' });
-                navigator.share({ files: [file], title: 'Song Analyse Export' }).catch(err => console.log(err));
-            } else {
-                const blob = new Blob([htmlContent], {type: "text/html;charset=utf-8"});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
+        function startPlayheadDrag(e) {
+            isDraggingPlayhead = true;
+            document.onmousemove = (ev) => {
+                const rect = container.getBoundingClientRect();
+                let t = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width)) * audio.duration;
+                playhead.style.left = (t / audio.duration * 100) + '%';
+                clock.innerText = formatTime(t);
+            };
+            document.onmouseup = (ev) => {
+                isDraggingPlayhead = false;
+                const rect = container.getBoundingClientRect();
+                audio.currentTime = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width)) * audio.duration;
+                document.onmousemove = null;
+            };
+        }
+
+        function toggleMergeMode() { isMergeMode = !isMergeMode; mergeBtn.classList.toggle('active'); container.classList.toggle('merge-mode'); }
+        function undo() { if (historyIndex > 0) { historyIndex--; markers = JSON.parse(JSON.stringify(historyStack[historyIndex])); drawTimeline(); } }
+        function redo() { if (historyIndex < historyStack.length - 1) { historyIndex++; markers = JSON.parse(JSON.stringify(historyStack[historyIndex])); drawTimeline(); } }
+        function saveState(init = false) { if (!init) historyStack = historyStack.slice(0, historyIndex + 1); historyStack.push(JSON.parse(JSON.stringify(markers))); historyIndex++; }
+        function setSegmentType(t) { markers[activeSegmentIndex].type = t; saveState(); drawTimeline(); contextMenu.style.display = 'none'; }
+        function setCustomSegmentType() { const res = prompt("Name:"); if(res) { markers[activeSegmentIndex].type = res; saveState(); drawTimeline(); } contextMenu.style.display = 'none'; }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA') return;
+            if (e.key.toLowerCase() === 'c') splitSection();
+            if (e.key.toLowerCase() === 'v') toggleMergeMode();
+            if (e.key.toLowerCase() === 't') tapTempo();
+            if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+            if (e.ctrlKey && e.key === 'z') undo();
+            if (e.ctrlKey && e.key === 'y') redo();
+        });
+
+        function promptExportApp() { 
+            const n = prompt("Dateiname:", "Song_Analyse.html"); 
+            if(n) exportApp(n.endsWith('.html') ? n : n + '.html'); 
+        }
+
+        function exportApp(n) {
+            document.getElementById('save-data').setAttribute('data-markers', JSON.stringify(markers));
+            const blob = new Blob(["<!DOCTYPE html>\n" + document.documentElement.outerHTML], {type: "text/html"});
+            const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = n; a.click();
         }
     </script>
 </body>
