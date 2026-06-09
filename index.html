@@ -491,17 +491,13 @@
             }
         }
 
-        /* Farben */
         .color-intro { background: #4682B4; }    
         .color-verse { background: #E1C03F; }    
-        .color-verse-solo { background: #ab9026; } /* Dunkleres Gelb */
         .color-prechorus { background: #F0943A; } 
         .color-chorus { background: #449E48; }    
-        .color-chorus-solo { background: #2f7332; } /* Dunkleres Grün */
         .color-interlude { background: #87CEEB; } 
         .color-bridge { background: #C72424; }    
         .color-solo { background: #222222; }      
-        .color-break { background: #808080; }     
         .color-outro { background: #4682B4; }    
         .color-custom { background: #555555; } 
 
@@ -536,7 +532,7 @@
         
         <div class="control-panel">
             <div class="panel-row">
-                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T"><span class="btn-icon">👆</span> Tap (T)</button>
+                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastrostkürzel: T"><span class="btn-icon">👆</span> Tap (T)</button>
                 <div class="bpm-display" id="bpm-val">-- BPM</div>
                 <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen"><span class="btn-icon">🔄</span></button>
             </div>
@@ -566,14 +562,11 @@
     <ul id="context-menu">
         <li onclick="setSegmentType('Intro')"><div class="color-box color-intro"></div> Intro</li>
         <li onclick="setSegmentType('Verse')"><div class="color-box color-verse"></div> Verse</li>
-        <li onclick="setSegmentType('Verse (Solo)')"><div class="color-box color-verse-solo"></div> Verse (Solo)</li>
         <li onclick="setSegmentType('Prechorus')"><div class="color-box color-prechorus"></div> Prechorus</li>
         <li onclick="setSegmentType('Chorus')"><div class="color-box color-chorus"></div> Chorus</li>
-        <li onclick="setSegmentType('Chorus (Solo)')"><div class="color-box color-chorus-solo"></div> Chorus (Solo)</li>
         <li onclick="setSegmentType('Interlude')"><div class="color-box color-interlude"></div> Interlude</li>
         <li onclick="setSegmentType('Bridge')"><div class="color-box color-bridge"></div> Bridge</li>
         <li onclick="setSegmentType('Solo')"><div class="color-box color-solo"></div> Solo</li>
-        <li onclick="setSegmentType('Break')"><div class="color-box color-break"></div> Break</li>
         <li onclick="setSegmentType('Outro')"><div class="color-box color-outro"></div> Outro</li>
         <li class="menu-divider"></li>
         <li onclick="setCustomSegmentType()"><div class="color-box color-custom"></div> Eigener Text...</li>
@@ -610,9 +603,9 @@
         let tapTimes = [];
 
         const colors = {
-            'Intro': '#4682B4', 'Verse': '#E1C03F', 'Verse (Solo)': '#ab9026', 'Prechorus': '#F0943A',
-            'Chorus': '#449E48', 'Chorus (Solo)': '#2f7332', 'Interlude': '#87CEEB', 'Bridge': '#C72424',
-            'Solo': '#222222', 'Break': '#808080', 'Outro': '#4682B4'
+            'Intro': '#4682B4', 'Verse': '#E1C03F', 'Prechorus': '#F0943A',
+            'Chorus': '#449E48', 'Interlude': '#87CEEB', 'Bridge': '#C72424',
+            'Solo': '#222222', 'Outro': '#4682B4'
         };
         const defaultCustomColor = '#555555';
 
