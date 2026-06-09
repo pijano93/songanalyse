@@ -307,36 +307,45 @@
 
         #table-timeline-container {
             display: flex;
+            flex-direction: column;
             width: 100%;
-            margin-top: 35px;
-            border: 1px solid #adb5bd;
-            border-radius: 4px;
-            background: #f8f9fa;
-            overflow: hidden;
-            align-items: stretch;
+            margin-top: 30px;
+            gap: 8px;
         }
 
         .table-segment-cell {
             display: flex;
-            flex-direction: column;
-            border-right: 1px solid #adb5bd;
-            min-width: 0;
+            width: 100%;
+            border: 1px solid #adb5bd;
+            border-radius: 6px;
             background: #fff;
-        }
-        .table-segment-cell:last-child {
-            border-right: none;
+            overflow: hidden;
+            align-items: stretch;
+            transition: border-color 0.15s, box-shadow 0.15s, padding 0.15s;
         }
 
+        /* Umrandung im aktiven Zustand (wird im JS überschrieben/ergänzt) */
+        .table-segment-cell.row-active {
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+            background: #fdfdfd;
+        }
+
+        /* KORREKTUR: Breite des grauen Zeilenkopfs von 160px auf 130px herabgesetzt */
         .table-segment-header {
-            padding: 8px 6px;
-            background: #e9ecef;
-            border-bottom: 1px solid #adb5bd;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 130px;
+            background: #eee;
+            padding: 10px 12px;
+            flex-shrink: 0;
+            user-select: none;
         }
 
         .table-segment-title {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
+            color: #333;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -344,26 +353,27 @@
 
         .table-segment-range {
             font-size: 11px;
-            font-weight: normal;
+            font-weight: 600;
             color: #666;
-            margin-top: 3px;
+            margin-top: 4px;
             font-family: monospace;
         }
 
         .table-segment-cell textarea {
-            width: 100%;
-            min-height: 70px;
+            flex-grow: 1;
             border: none;
-            padding: 8px;
-            font-size: 13px;
-            overflow-y: hidden;
+            padding: 12px;
+            font-size: 14px;
             resize: none;
             background: transparent;
             font-family: inherit;
             display: block;
+            min-height: 56px;
+            overflow-y: hidden;
         }
+        
         .table-segment-cell textarea:focus {
-            outline: 2px solid #ccc;
+            outline: none;
             background: #fff;
         }
 
@@ -532,7 +542,7 @@
         
         <div class="control-panel">
             <div class="panel-row">
-                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastrostkürzel: T"><span class="btn-icon">👆</span> Tap (T)</button>
+                <button class="btn-tapper btn-panel-sync" onclick="tapTempo(event)" title="Tastenkürzel: T"><span class="btn-icon">👆</span> Tap (T)</button>
                 <div class="bpm-display" id="bpm-val">-- BPM</div>
                 <button class="btn-reset-bpm" onclick="resetTapper()" title="BPM zurücksetzen"><span class="btn-icon">🔄</span></button>
             </div>
@@ -793,10 +803,29 @@
             }
         }
 
+        // KORREKTUR: Dynamische Umrandung des aktiven Formteils in der spezifischen Formteilfarbe
         audio.addEventListener('timeupdate', () => {
             if (!isDragging && !isDraggingPlayhead) {
                 updateClock();
                 updatePlayhead();
+                
+                if(audio.duration) {
+                    const currentIdx = getSegmentIndex(audio.currentTime);
+                    document.querySelectorAll('.table-segment-cell').forEach((cell, i) => {
+                        if (i === currentIdx) {
+                            const markerType = markers[i].type;
+                            const activeColor = colors[markerType] || defaultCustomColor;
+                            cell.classList.add('row-active');
+                            // Verwendet die exakte Farbe des Formteils als 3px Rahmen
+                            cell.style.borderColor = activeColor;
+                            cell.style.borderWidth = '3px';
+                        } else {
+                            cell.classList.remove('row-active');
+                            cell.style.borderColor = '#adb5bd';
+                            cell.style.borderWidth = '1px';
+                        }
+                    });
+                }
             }
         });
 
@@ -883,10 +912,10 @@
         function toggleMergeMode() {
             isMergeMode = !isMergeMode;
             if (isMergeMode) {
-                mergeBtn.classList.add('active-red');
+                mergeBtn.classList.add('active');
                 container.classList.add('merge-mode');
             } else {
-                mergeBtn.classList.remove('active-red');
+                mergeBtn.classList.remove('active');
                 container.classList.remove('merge-mode');
             }
         }
@@ -902,6 +931,7 @@
 
             if (!audio.duration) return;
             const duration = audio.duration;
+            const currentIdx = getSegmentIndex(audio.currentTime);
 
             for (let i = 0; i < markers.length; i++) {
                 const start = markers[i].time;
@@ -953,6 +983,7 @@
                     }
                 });
 
+                seg.preventDefault;
                 seg.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     activeSegmentIndex = i;
@@ -996,11 +1027,17 @@
 
                 const cell = document.createElement('div');
                 cell.className = 'table-segment-cell';
-                cell.style.width = widthPct + '%';
+                
+                if (i === currentIdx) {
+                    const activeColor = colors[markers[i].type] || defaultCustomColor;
+                    cell.classList.add('row-active');
+                    cell.style.borderColor = activeColor;
+                    cell.style.borderWidth = '3px';
+                }
 
                 const cellHeader = document.createElement('div');
                 cellHeader.className = 'table-segment-header';
-                cellHeader.style.borderTop = `3px solid ${colors[markers[i].type] || defaultCustomColor}`;
+                cellHeader.style.borderLeft = `6px solid ${colors[markers[i].type] || defaultCustomColor}`;
                 
                 const cellTitle = document.createElement('div');
                 cellTitle.className = 'table-segment-title';
@@ -1014,7 +1051,7 @@
                 cellHeader.appendChild(cellRange);
 
                 const textarea = document.createElement('textarea');
-                textarea.placeholder = "Anmerkungen...";
+                textarea.placeholder = "Anmerkungen zu diesem Abschnitt...";
                 textarea.value = markers[i].notes || "";
                 
                 textarea.addEventListener('input', (e) => {
@@ -1036,9 +1073,10 @@
             ctx.fillRect(0, canvas.height / 2 - 2, canvas.width, 4);
         }
 
+        // KORREKTUR: Tap-Funktion liest das Event korrekt aus, um ungestört die BPM-Berechnung auszuführen
         function tapTempo(e) {
-            if(e) e.preventDefault();
-            const now = new Date().getTime();
+            if(e && e.preventDefault) e.preventDefault();
+            const now = Date.now();
             if (tapTimes.length > 0 && (now - tapTimes[tapTimes.length - 1]) > 2000) {
                 tapTimes = [];
             }
@@ -1133,9 +1171,6 @@
             const widthPct = ((newTime - start) / duration) * 100;
             
             dragHandleElement.style.width = widthPct + '%';
-            
-            const cells = tableContainer.children;
-            if(cells[dragMarkerIndex - 1]) cells[dragMarkerIndex - 1].style.width = widthPct + '%';
 
             const nextSeg = dragHandleElement.nextSibling;
             if (nextSeg && nextSeg.classList.contains('segment')) {
@@ -1143,14 +1178,14 @@
                 const nextWidthPct = ((nextEnd - newTime) / duration) * 100;
                 nextSeg.style.left = ((newTime / duration) * 100) + '%';
                 nextSeg.style.width = nextWidthPct + '%';
-                if(cells[dragMarkerIndex]) cells[dragMarkerIndex].style.width = nextWidthPct + '%';
                 
+                const cells = tableContainer.children;
                 if(cells[dragMarkerIndex - 1]) {
-                    cells[dragMarkerIndex - 1].querySelector('.table-segment-title').innerText = markers[dragMarkerIndex - 1].type;
                     cells[dragMarkerIndex - 1].querySelector('.table-segment-range').innerText = `${formatTime(start)} - ${formatTime(newTime)}`;
                 }
-                cells[dragMarkerIndex].querySelector('.table-segment-title').innerText = markers[dragMarkerIndex].type;
-                cells[dragMarkerIndex].querySelector('.table-segment-range').innerText = `${formatTime(newTime)} - ${formatTime(nextEnd)}`;
+                if(cells[dragMarkerIndex]) {
+                    cells[dragMarkerIndex].querySelector('.table-segment-range').innerText = `${formatTime(newTime)} - ${formatTime(nextEnd)}`;
+                }
             }
         }
 
