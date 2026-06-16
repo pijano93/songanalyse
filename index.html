@@ -529,9 +529,10 @@
 
         <div class="toolbar">
             <div class="button-grid">
+                <!-- Universal-Button für Audio- und HTML-Dateien -->
                 <label class="upload-btn upload-mp3">
-                    <input type="file" id="audio-upload" accept="audio/*, .mp3, .wav, .ogg, audio/mpeg">
-                    <span class="btn-icon">🎵</span> MP3 Laden
+                    <input type="file" id="audio-upload" accept="audio/*, .mp3, .wav, .ogg, audio/mpeg, .html, text/html">
+                    <span class="btn-icon">📂</span> Importieren
                 </label>
                 <button onclick="splitSection()" title="Tastenkürzel: C"><span class="btn-icon">✂️</span> Teilen (C)</button>
                 <button onclick="undo()" title="Tastenkürzel: STRG+Z"><span class="btn-text-symbol">←</span> Rückgängig</button>
@@ -655,22 +656,67 @@
             canvas.height = waveContainer.clientHeight;
         }
 
+        // KORREKTUR: Universal-Upload verarbeitet nun Audio ODER HTML-Dateien
         document.getElementById('audio-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
             
             clock.innerText = "LÄDT...";
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                const b64 = evt.target.result;
-                document.getElementById('save-data').setAttribute('data-audio', b64);
-                markers = [{"time": 0, "type": "Intro", "notes": ""}];
-                historyStack = [];
-                historyIndex = -1;
-                saveState(true);
-                initAudio(b64);
-            };
-            reader.readAsDataURL(file);
+
+            // Prüfung: Ist es eine HTML-Projektdatei?
+            if (file.name.toLowerCase().endsWith('.html') || file.type === 'text/html') {
+                reader.onload = function(evt) {
+                    const htmlText = evt.target.result;
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlText, 'text/html');
+                    const saveDataNode = doc.getElementById('save-data');
+                    
+                    if (saveDataNode) {
+                        const loadedAudio = saveDataNode.getAttribute('data-audio');
+                        const loadedMarkers = saveDataNode.getAttribute('data-markers');
+                        
+                        if (loadedAudio) {
+                            document.getElementById('save-data').setAttribute('data-audio', loadedAudio);
+                        }
+                        if (loadedMarkers) {
+                            document.getElementById('save-data').setAttribute('data-markers', loadedMarkers);
+                            markers = JSON.parse(loadedMarkers);
+                            markers.forEach(m => { if(m.notes === undefined) m.notes = ""; });
+                        }
+                        
+                        historyStack = [];
+                        historyIndex = -1;
+                        saveState(true);
+                        
+                        if (loadedAudio) {
+                            initAudio(loadedAudio);
+                        } else {
+                            drawTimeline();
+                            clock.innerText = "00:00";
+                        }
+                    } else {
+                        alert("Das ist keine gültige Song-Analyse-Projektdatei.");
+                        clock.innerText = "00:00";
+                    }
+                    e.target.value = ''; // Reset Input
+                };
+                reader.readAsText(file);
+            } 
+            // Andernfalls: Wir gehen von einer MP3/Audiodatei aus
+            else {
+                reader.onload = function(evt) {
+                    const b64 = evt.target.result;
+                    document.getElementById('save-data').setAttribute('data-audio', b64);
+                    markers = [{"time": 0, "type": "Intro", "notes": ""}];
+                    historyStack = [];
+                    historyIndex = -1;
+                    saveState(true);
+                    initAudio(b64);
+                    e.target.value = ''; // Reset Input
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
         function initAudio(src) {
@@ -1332,23 +1378,34 @@
                 if (!finalName.toLowerCase().endsWith('.html')) {
                     finalName += '.html';
                 }
+                // KORREKTUR: Automatisch mit integrierter MP3 speichern
                 exportApp(finalName);
             }
         }
 
         function exportApp(fileName) {
             const saveDataElem = document.getElementById('save-data');
-            if (!saveDataElem.getAttribute('data-audio')) {
+            const audioData = saveDataElem.getAttribute('data-audio');
+            
+            if (!audioData) {
                 alert("Bitte lade zuerst eine MP3-Datei!");
                 return;
             }
 
             saveDataElem.setAttribute('data-markers', JSON.stringify(markers));
             
-            const docClone = document.documentElement.cloneNode(true);
-            docClone.querySelector('#context-menu').style.display = 'none';
+            const rawHtml = document.documentElement.outerHTML;
+            const parser = new DOMParser();
+            const docClone = parser.parseFromString(rawHtml, 'text/html');
             
-            const htmlContent = "<!DOCTYPE html>\n" + docClone.outerHTML;
+            docClone.querySelector('#save-data').setAttribute('data-audio', '');
+            if (docClone.querySelector('#context-menu')) {
+                docClone.querySelector('#context-menu').style.display = 'none';
+            }
+
+            docClone.querySelector('#save-data').setAttribute('data-audio', audioData);
+            
+            const htmlContent = "<!DOCTYPE html>\n" + docClone.documentElement.outerHTML;
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             
             if (isIOS && navigator.share) {
