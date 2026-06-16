@@ -338,10 +338,10 @@
             padding: 10px 12px;
             flex-shrink: 0;
             user-select: none;
-            cursor: pointer; /* Zeigt Klickbarkeit an */
+            cursor: pointer; 
         }
         .table-segment-header:hover {
-            background: #e2e2e2; /* Kleines visuelles Feedback beim Überfliegen */
+            background: #e2e2e2; 
         }
 
         .table-segment-title {
@@ -530,7 +530,7 @@
         <div class="toolbar">
             <div class="button-grid">
                 <label class="upload-btn upload-mp3">
-                    <input type="file" id="audio-upload" accept="audio/mp3, audio/wav, audio/ogg">
+                    <input type="file" id="audio-upload" accept="audio/*, .mp3, .wav, .ogg, audio/mpeg">
                     <span class="btn-icon">🎵</span> MP3 Laden
                 </label>
                 <button onclick="splitSection()" title="Tastenkürzel: C"><span class="btn-icon">✂️</span> Teilen (C)</button>
@@ -805,6 +805,26 @@
             }
         }
 
+        function handleHeaderClick(index) {
+            if (!audio.src) return;
+            
+            const targetTime = markers[index].time;
+            const currentIdx = getSegmentIndex(audio.currentTime);
+            
+            if (currentIdx === index) {
+                togglePlay();
+            } else {
+                audio.currentTime = targetTime;
+                if (audio.paused) {
+                    audio.play();
+                    playBtn.innerHTML = '<span class="btn-icon">⏸</span>';
+                    playBtn.classList.add('active'); 
+                }
+                updatePlayhead();
+                updateClock();
+            }
+        }
+
         audio.addEventListener('timeupdate', () => {
             if (!isDragging && !isDraggingPlayhead) {
                 updateClock();
@@ -924,29 +944,6 @@
             el.style.height = el.scrollHeight + "px";
         }
 
-        // KORREKTUR: Interaktive Wiedergabe-/Pausefunktion für den grauen Zeilenkopf eingebaut
-        function handleHeaderClick(index) {
-            if (!audio.src) return;
-            
-            const targetTime = markers[index].time;
-            const currentIdx = getSegmentIndex(audio.currentTime);
-            
-            // Wenn wir bereits in diesem Formteil sind: Pausieren oder Fortsetzen
-            if (currentIdx === index) {
-                togglePlay();
-            } else {
-                // Wenn wir aus einem anderen Formteil kommen: An den Start des angeklickten Formteils springen und abspielen
-                audio.currentTime = targetTime;
-                if (audio.paused) {
-                    audio.play();
-                    playBtn.innerHTML = '<span class="btn-icon">⏸</span>';
-                    playBtn.classList.add('active'); 
-                }
-                updatePlayhead();
-                updateClock();
-            }
-        }
-
         function drawTimeline() {
             document.querySelectorAll('.segment').forEach(el => el.remove());
             tableContainer.innerHTML = '';
@@ -1059,7 +1056,6 @@
                 const cellHeader = document.createElement('div');
                 cellHeader.className = 'table-segment-header';
                 cellHeader.style.borderLeft = `6px solid ${colors[markers[i].type] || defaultCustomColor}`;
-                // KORREKTUR: Klick-Event für Steuerung via Zeilenkopf hinterlegt
                 cellHeader.setAttribute('onclick', `handleHeaderClick(${i})`);
                 
                 const cellTitle = document.createElement('div');
@@ -1349,7 +1345,6 @@
 
             saveDataElem.setAttribute('data-markers', JSON.stringify(markers));
             
-            // OPTIMIERUNG der Dateigröße: Wir klonen gezielt nur den Kern und säubern doppelte Base64-Felder im DOM
             const docClone = document.documentElement.cloneNode(true);
             docClone.querySelector('#context-menu').style.display = 'none';
             
