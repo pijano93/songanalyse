@@ -529,7 +529,6 @@
 
         <div class="toolbar">
             <div class="button-grid">
-                <!-- Universal-Button für Audio- und HTML-Dateien -->
                 <label class="upload-btn upload-mp3">
                     <input type="file" id="audio-upload" accept="audio/*, .mp3, .wav, .ogg, audio/mpeg, .html, text/html">
                     <span class="btn-icon">📂</span> Importieren
@@ -628,20 +627,37 @@
             .catch(err => console.log("Service Worker Fehler", err));
         }
 
+        // KORREKTUR: App prüft beim Start direkt, ob sie ein HTML-Projekt ohne Musik ist
         window.onload = function() {
             const saveData = document.getElementById('save-data');
             const audioSrc = saveData.getAttribute('data-audio');
             const markerData = saveData.getAttribute('data-markers');
 
+            let customMarkersExist = false;
+            
             if (markerData) {
-                markers = JSON.parse(markerData);
-                markers.forEach(m => { if(m.notes === undefined) m.notes = ""; });
+                const parsedMarkers = JSON.parse(markerData);
+                parsedMarkers.forEach(m => { if(m.notes === undefined) m.notes = ""; });
+                
+                // Prüfen, ob wir mehr als nur den Standard-Marker haben (Indikator für ein Projekt)
+                if (parsedMarkers.length > 1 || parsedMarkers[0].type !== "Intro" || parsedMarkers[0].notes !== "") {
+                    markers = parsedMarkers;
+                    customMarkersExist = true;
+                }
             }
             saveState(true);
 
-            if (audioSrc) {
+            if (audioSrc && audioSrc.length > 50) {
                 clock.innerText = "LÄDT...";
                 initAudio(audioSrc);
+            } else if (customMarkersExist) {
+                // Wenn Formteile vorhanden sind, aber kein Audio:
+                window.htmlProjectLoadedWithoutAudio = true;
+                drawTimeline();
+                clock.innerText = "00:00";
+                setTimeout(() => {
+                    alert("Projekt geöffnet!\n\nDeine Formteile und Notizen sind da. Bitte importiere jetzt noch die dazugehörige MP3-Datei über den 'Importieren'-Button, um das Projekt zu verknüpfen.");
+                }, 500);
             }
             
             playhead.addEventListener('mousedown', (e) => startPlayheadDrag(e, false));
@@ -656,7 +672,6 @@
             canvas.height = waveContainer.clientHeight;
         }
 
-        // KORREKTUR: Universal-Upload verarbeitet nun Audio ODER HTML-Dateien
         document.getElementById('audio-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -664,7 +679,6 @@
             clock.innerText = "LÄDT...";
             const reader = new FileReader();
 
-            // Prüfung: Ist es eine HTML-Projektdatei?
             if (file.name.toLowerCase().endsWith('.html') || file.type === 'text/html') {
                 reader.onload = function(evt) {
                     const htmlText = evt.target.result;
@@ -689,31 +703,47 @@
                         historyIndex = -1;
                         saveState(true);
                         
-                        if (loadedAudio) {
+                        if (loadedAudio && loadedAudio.trim() !== "") {
                             initAudio(loadedAudio);
                         } else {
+                            window.htmlProjectLoadedWithoutAudio = true;
                             drawTimeline();
                             clock.innerText = "00:00";
+                            setTimeout(() => {
+                                alert("Projekt geladen! Bitte importiere jetzt noch die dazugehörige MP3-Datei über den 'Importieren'-Button.");
+                            }, 500);
                         }
                     } else {
                         alert("Das ist keine gültige Song-Analyse-Projektdatei.");
                         clock.innerText = "00:00";
                     }
-                    e.target.value = ''; // Reset Input
+                    e.target.value = '';
                 };
                 reader.readAsText(file);
             } 
-            // Andernfalls: Wir gehen von einer MP3/Audiodatei aus
             else {
                 reader.onload = function(evt) {
                     const b64 = evt.target.result;
                     document.getElementById('save-data').setAttribute('data-audio', b64);
-                    markers = [{"time": 0, "type": "Intro", "notes": ""}];
+                    
+                    // KORREKTUR: Wenn die App bereits ein HTML-Projekt ohne Audio ist, behalten wir die Marker
+                    if (window.htmlProjectLoadedWithoutAudio) {
+                        window.htmlProjectLoadedWithoutAudio = false; 
+                    } else if (markers.length > 1 || markers[0].type !== "Intro" || markers[0].notes !== "") {
+                        // Sicherheitsabfrage, falls der Nutzer einfach so eine MP3 lädt, obwohl er schon Marker gesetzt hat
+                        const keep = confirm("Du hast bereits Formteile oder Anmerkungen erstellt. Möchtest du diese für den neu importierten Song behalten?\n\n[OK] = Ja, behalten\n[Abbrechen] = Nein, komplett neues Projekt starten");
+                        if (!keep) {
+                            markers = [{"time": 0, "type": "Intro", "notes": ""}];
+                        }
+                    } else {
+                        markers = [{"time": 0, "type": "Intro", "notes": ""}];
+                    }
+                    
                     historyStack = [];
                     historyIndex = -1;
                     saveState(true);
                     initAudio(b64);
-                    e.target.value = ''; // Reset Input
+                    e.target.value = '';
                 };
                 reader.readAsDataURL(file);
             }
@@ -876,7 +906,7 @@
                 updateClock();
                 updatePlayhead();
                 
-                if(audio.duration) {
+                if(audio.duration || window.htmlProjectLoadedWithoutAudio) {
                     const currentIdx = getSegmentIndex(audio.currentTime);
                     document.querySelectorAll('.table-segment-cell').forEach((cell, i) => {
                         if (i === currentIdx) {
@@ -994,100 +1024,89 @@
             document.querySelectorAll('.segment').forEach(el => el.remove());
             tableContainer.innerHTML = '';
 
-            if (!audio.duration) return;
-            const duration = audio.duration;
+            const duration = audio.duration || 0;
             const currentIdx = getSegmentIndex(audio.currentTime);
 
             for (let i = 0; i < markers.length; i++) {
                 const start = markers[i].time;
                 const end = (i < markers.length - 1) ? markers[i+1].time : duration;
                 
-                const startPct = (start / duration) * 100;
-                const widthPct = ((end - start) / duration) * 100;
+                const startPct = duration ? (start / duration) * 100 : 0;
+                const widthPct = duration ? ((end - start) / duration) * 100 : 100 / markers.length;
 
-                const seg = document.createElement('div');
-                seg.className = 'segment';
-                seg.style.left = startPct + '%';
-                seg.style.width = widthPct + '%';
-                seg.style.backgroundColor = colors[markers[i].type] || defaultCustomColor;
-                seg.setAttribute('data-index', i);
-                seg.setAttribute('title', markers[i].type + ' (' + formatTime(end - start) + ')');
+                if (duration) {
+                    const seg = document.createElement('div');
+                    seg.className = 'segment';
+                    seg.style.left = startPct + '%';
+                    seg.style.width = widthPct + '%';
+                    seg.style.backgroundColor = colors[markers[i].type] || defaultCustomColor;
+                    seg.setAttribute('data-index', i);
+                    seg.setAttribute('title', markers[i].type + ' (' + formatTime(end - start) + ')');
 
-                const label = document.createElement('div');
-                label.className = 'segment-label';
-                label.innerText = markers[i].type;
-                seg.appendChild(label);
+                    const label = document.createElement('div');
+                    label.className = 'segment-label';
+                    label.innerText = markers[i].type;
+                    seg.appendChild(label);
 
-                if (i < markers.length - 1) {
-                    const handle = document.createElement('div');
-                    handle.className = 'handle';
-                    handle.addEventListener('mousedown', (e) => startDrag(e, i + 1, false));
-                    handle.addEventListener('touchstart', (e) => startDrag(e, i + 1, true), {passive: false});
-                    seg.appendChild(handle);
-                }
-
-                seg.addEventListener('click', (e) => {
-                    if (isMergeMode || e.target.classList.contains('handle') || isDragging) return;
-                    audio.currentTime = start;
-                    updatePlayhead();
-                    updateClock();
-                });
-
-                let touchStartTime = 0;
-                seg.addEventListener('touchstart', (e) => { touchStartTime = new Date().getTime(); }, {passive: true});
-                seg.addEventListener('touchend', (e) => {
-                    const touchEndTime = new Date().getTime();
-                    if ((touchEndTime - touchStartTime) < 200) {
-                        if (isMergeMode || isDragging || e.target.classList.contains('handle')) return;
-                        setTimeout(() => {
-                            if (contextMenu.style.display !== 'block') {
-                                audio.currentTime = start;
-                                updatePlayhead(); updateClock();
-                            }
-                        }, 250);
+                    if (i < markers.length - 1) {
+                        const handle = document.createElement('div');
+                        handle.className = 'handle';
+                        handle.addEventListener('mousedown', (e) => startDrag(e, i + 1, false));
+                        handle.addEventListener('touchstart', (e) => startDrag(e, i + 1, true), {passive: false});
+                        seg.appendChild(handle);
                     }
-                });
 
-                seg.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    activeSegmentIndex = i;
-                    contextMenu.style.display = 'block';
-                    contextMenu.style.left = e.pageX + 'px';
-                    contextMenu.style.top = e.pageY + 'px';
-                });
+                    seg.addEventListener('click', (e) => {
+                        if (isMergeMode || e.target.classList.contains('handle') || isDragging) return;
+                        audio.currentTime = start;
+                        updatePlayhead();
+                        updateClock();
+                    });
 
-                seg.addEventListener('dblclick', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    pauseAudioOnly();
-                    audio.currentTime = start;
-                    updatePlayhead(); updateClock();
-                    activeSegmentIndex = i;
-                    contextMenu.style.display = 'block';
-                    contextMenu.style.left = e.pageX + 'px';
-                    contextMenu.style.top = e.pageY + 'px';
-                });
+                    seg.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        activeSegmentIndex = i;
+                        contextMenu.style.display = 'block';
+                        contextMenu.style.left = e.pageX + 'px';
+                        contextMenu.style.top = e.pageY + 'px';
+                    });
 
-                let lastTap = 0;
-                seg.addEventListener('touchend', (e) => {
-                    const currentTime = new Date().getTime();
-                    const tapLength = currentTime - lastTap;
-                    if (tapLength < 400 && tapLength > 0) {
+                    seg.addEventListener('dblclick', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         pauseAudioOnly();
                         audio.currentTime = start;
                         updatePlayhead(); updateClock();
                         activeSegmentIndex = i;
-                        const touch = e.changedTouches[0];
                         contextMenu.style.display = 'block';
-                        contextMenu.style.left = touch.pageX + 'px';
-                        contextMenu.style.top = touch.pageY + 'px';
-                    }
-                    lastTap = currentTime;
-                });
+                        contextMenu.style.left = e.pageX + 'px';
+                        contextMenu.style.top = e.pageY + 'px';
+                    });
 
-                container.appendChild(seg);
+                    let touchStartTime = 0;
+                    seg.addEventListener('touchstart', (e) => { touchStartTime = new Date().getTime(); }, {passive: true});
+                    seg.addEventListener('touchend', (e) => {
+                        const touchEndTime = new Date().getTime();
+                        if ((touchEndTime - touchStartTime) < 200) {
+                            if (isMergeMode || isDragging || e.target.classList.contains('handle')) return;
+                            setTimeout(() => {
+                                if (contextMenu.style.display !== 'block') {
+                                    audio.currentTime = start;
+                                    updatePlayhead(); updateClock();
+                                }
+                            }, 250);
+                        } else if ((touchEndTime - touchStartTime) > 500) {
+                            e.preventDefault();
+                            activeSegmentIndex = i;
+                            const touch = e.changedTouches[0];
+                            contextMenu.style.display = 'block';
+                            contextMenu.style.left = touch.pageX + 'px';
+                            contextMenu.style.top = touch.pageY + 'px';
+                        }
+                    });
+
+                    container.appendChild(seg);
+                }
 
                 const cell = document.createElement('div');
                 cell.className = 'table-segment-cell';
@@ -1104,13 +1123,45 @@
                 cellHeader.style.borderLeft = `6px solid ${colors[markers[i].type] || defaultCustomColor}`;
                 cellHeader.setAttribute('onclick', `handleHeaderClick(${i})`);
                 
+                cellHeader.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    activeSegmentIndex = i;
+                    contextMenu.style.display = 'block';
+                    contextMenu.style.left = e.pageX + 'px';
+                    contextMenu.style.top = e.pageY + 'px';
+                });
+
+                cellHeader.addEventListener('dblclick', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    activeSegmentIndex = i;
+                    contextMenu.style.display = 'block';
+                    contextMenu.style.left = e.pageX + 'px';
+                    contextMenu.style.top = e.pageY + 'px';
+                });
+
+                let headerLastTap = 0;
+                cellHeader.addEventListener('touchend', (e) => {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - headerLastTap;
+                    if (tapLength > 500) {
+                        e.preventDefault();
+                        activeSegmentIndex = i;
+                        const touch = e.changedTouches[0];
+                        contextMenu.style.display = 'block';
+                        contextMenu.style.left = touch.pageX + 'px';
+                        contextMenu.style.top = touch.pageY + 'px';
+                    }
+                    headerLastTap = currentTime;
+                });
+
                 const cellTitle = document.createElement('div');
                 cellTitle.className = 'table-segment-title';
                 cellTitle.innerText = markers[i].type;
 
                 const cellRange = document.createElement('div');
                 cellRange.className = 'table-segment-range';
-                cellRange.innerText = `${formatTime(start)} - ${formatTime(end)}`;
+                cellRange.innerText = duration ? `${formatTime(start)} - ${formatTime(end)}` : "--:--";
 
                 cellHeader.appendChild(cellTitle);
                 cellHeader.appendChild(cellRange);
@@ -1378,20 +1429,13 @@
                 if (!finalName.toLowerCase().endsWith('.html')) {
                     finalName += '.html';
                 }
-                // KORREKTUR: Automatisch mit integrierter MP3 speichern
                 exportApp(finalName);
             }
         }
 
         function exportApp(fileName) {
             const saveDataElem = document.getElementById('save-data');
-            const audioData = saveDataElem.getAttribute('data-audio');
             
-            if (!audioData) {
-                alert("Bitte lade zuerst eine MP3-Datei!");
-                return;
-            }
-
             saveDataElem.setAttribute('data-markers', JSON.stringify(markers));
             
             const rawHtml = document.documentElement.outerHTML;
@@ -1399,11 +1443,22 @@
             const docClone = parser.parseFromString(rawHtml, 'text/html');
             
             docClone.querySelector('#save-data').setAttribute('data-audio', '');
+            
+            const audioEl = docClone.querySelector('#audio-player');
+            if (audioEl) {
+                audioEl.removeAttribute('src');
+                audioEl.innerHTML = '';
+            }
+
+            const canvasEl = docClone.querySelector('#waveform-canvas');
+            if (canvasEl) {
+                const ctxClone = canvasEl.getContext('2d');
+                if (ctxClone) ctxClone.clearRect(0, 0, canvasEl.width, canvasEl.height);
+            }
+
             if (docClone.querySelector('#context-menu')) {
                 docClone.querySelector('#context-menu').style.display = 'none';
             }
-
-            docClone.querySelector('#save-data').setAttribute('data-audio', audioData);
             
             const htmlContent = "<!DOCTYPE html>\n" + docClone.documentElement.outerHTML;
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
