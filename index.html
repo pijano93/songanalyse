@@ -520,7 +520,7 @@
 </head>
 <body>
 
-    <div id="save-data" style="display:none;" data-audio="" data-markers='[{"time":0,"type":"Intro","notes":""}]' data-filename=""></div>
+    <div id="save-data" style="display:none;" data-audio="" data-markers='[]' data-filename=""></div>
 
     <div class="header">
         <div class="app-icon-container">
@@ -598,7 +598,8 @@
         const canvas = document.getElementById('waveform-canvas');
         const ctx = canvas.getContext('2d');
 
-        let markers = [{"time": 0, "type": "Intro", "notes": ""}];
+        // KORREKTUR: Starter-Zustand ist komplett leer
+        let markers = [];
         let historyStack = [];
         let historyIndex = -1;
         let isMergeMode = false;
@@ -632,19 +633,32 @@
             const audioSrc = saveData.getAttribute('data-audio');
             const markerData = saveData.getAttribute('data-markers');
 
+            let customMarkersExist = false;
+            
             if (markerData) {
                 const parsedMarkers = JSON.parse(markerData);
                 parsedMarkers.forEach(m => { if(m.notes === undefined) m.notes = ""; });
-                markers = parsedMarkers;
+                
+                // Wir übernehmen die Marker nur, wenn überhaupt welche drinstehen
+                if (parsedMarkers.length > 0) {
+                    if (parsedMarkers.length > 1 || parsedMarkers[0].type !== "Intro" || parsedMarkers[0].notes !== "") {
+                        markers = parsedMarkers;
+                        customMarkersExist = true;
+                    }
+                }
             }
             saveState(true);
 
             if (audioSrc && audioSrc.length > 50) {
                 clock.innerText = "LÄDT...";
                 initAudio(audioSrc);
-            } else {
+            } else if (customMarkersExist) {
+                window.htmlProjectLoadedWithoutAudio = true;
                 drawTimeline();
                 clock.innerText = "00:00";
+                setTimeout(() => {
+                    alert("Projekt geöffnet!\n\nDeine Formteile und Notizen sind da. Bitte importiere jetzt noch die dazugehörige MP3-Datei über den 'Importieren'-Button, um das Projekt zu verknüpfen.");
+                }, 500);
             }
             
             playhead.addEventListener('mousedown', (e) => startPlayheadDrag(e, false));
@@ -663,7 +677,6 @@
             const file = e.target.files[0];
             if (!file) return;
             
-            // KORREKTUR: Den reinen Dateinamen ohne Endung isolieren und speichern
             const baseFileName = file.name.replace(/\.[^/.]+$/, "");
             
             clock.innerText = "LÄDT...";
@@ -681,7 +694,6 @@
                         const loadedMarkers = saveDataNode.getAttribute('data-markers');
                         const loadedFileName = saveDataNode.getAttribute('data-filename');
                         
-                        // Übernehmen des im Projekt gespeicherten Songnamens oder Rückgriff auf den Dateinamen
                         if (loadedFileName) {
                             document.getElementById('save-data').setAttribute('data-filename', loadedFileName);
                         } else {
@@ -717,19 +729,22 @@
                 reader.readAsText(file);
             } 
             else {
-                // Bei MP3/Audio: Speichern des Songnamens
                 document.getElementById('save-data').setAttribute('data-filename', baseFileName);
                 
                 reader.onload = function(evt) {
                     const b64 = evt.target.result;
                     document.getElementById('save-data').setAttribute('data-audio', b64);
                     
-                    if (markers.length > 1 || markers[0].type !== "Intro" || markers[0].notes !== "") {
+                    if (window.htmlProjectLoadedWithoutAudio) {
+                        window.htmlProjectLoadedWithoutAudio = false; 
+                    } else if (markers.length > 0 && (markers.length > 1 || markers[0].type !== "Intro" || markers[0].notes !== "")) {
                         const keep = confirm("Du hast bereits Formteile oder Anmerkungen erstellt. Möchtest du diese für den neu importierten Song behalten?\n\n[OK] = Ja, behalten\n[Abbrechen] = Nein, komplett neues Projekt starten");
                         if (!keep) {
+                            // KORREKTUR: Wenn der User verneint oder wir ein leeres Projekt haben, Intro-Block initialisieren
                             markers = [{"time": 0, "type": "Intro", "notes": ""}];
                         }
                     } else {
+                        // KORREKTUR: Falls noch gar nichts existierte, Intro-Block generieren
                         markers = [{"time": 0, "type": "Intro", "notes": ""}];
                     }
                     
@@ -814,6 +829,7 @@
         }
 
         function getSegmentIndex(t) {
+            if (markers.length === 0) return -1;
             for (let i = markers.length - 1; i >= 0; i--) {
                 if (t >= markers[i].time) return i;
             }
@@ -876,7 +892,7 @@
         }
 
         function handleHeaderClick(index) {
-            if (!audio.src) return;
+            if (!audio.src || markers.length === 0) return;
             
             const targetTime = markers[index].time;
             const currentIdx = getSegmentIndex(audio.currentTime);
@@ -900,7 +916,7 @@
                 updateClock();
                 updatePlayhead();
                 
-                if(audio.duration) {
+                if((audio.duration || window.htmlProjectLoadedWithoutAudio) && markers.length > 0) {
                     const currentIdx = getSegmentIndex(audio.currentTime);
                     document.querySelectorAll('.table-segment-cell').forEach((cell, i) => {
                         if (i === currentIdx) {
@@ -979,7 +995,7 @@
         }, {passive: true});
 
         function splitSection() {
-            if (!audio.duration || audio.currentTime === 0) return;
+            if (!audio.duration || audio.currentTime === 0 || markers.length === 0) return;
             const t = audio.currentTime;
             
             if (markers.some(m => Math.abs(m.time - t) < 0.2)) return;
@@ -1017,6 +1033,8 @@
         function drawTimeline() {
             document.querySelectorAll('.segment').forEach(el => el.remove());
             tableContainer.innerHTML = '';
+            
+            if (markers.length === 0) return;
 
             const duration = audio.duration || 0;
             const currentIdx = getSegmentIndex(audio.currentTime);
@@ -1416,16 +1434,14 @@
             }
         }
         
-        // KORREKTUR: Direkter Export MIT Audio (aber ohne künstliche Verdopplung) und dynamischem Dateinamen
         function exportApp() {
             const saveDataElem = document.getElementById('save-data');
             
-            if (markers.length <= 1 && markers[0].type === "Intro" && markers[0].notes === "") {
+            if (markers.length === 0 || (markers.length <= 1 && markers[0].type === "Intro" && markers[0].notes === "")) {
                 alert("Es gibt noch keine Formteile oder Notizen, die gespeichert werden können.");
                 return;
             }
 
-            // Dateinamen anhand des Original-Songs und dem aktuellen Datum/Uhrzeit generieren
             const baseName = saveDataElem.getAttribute('data-filename') || "Song_Analyse";
             const now = new Date();
             const dateStr = now.getFullYear() + 
@@ -1441,8 +1457,6 @@
             const parser = new DOMParser();
             const docClone = parser.parseFromString(rawHtml, 'text/html');
             
-            // WICHTIG: Die Audio-Datei bleibt im data-audio Attribut von #save-data bestehen!
-            // Wir leeren aber den HTML-Audio-Player, um die Datei nicht zu verdoppeln.
             const audioEl = docClone.querySelector('#audio-player');
             if (audioEl) {
                 audioEl.removeAttribute('src');
